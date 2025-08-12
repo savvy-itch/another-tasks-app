@@ -1,75 +1,137 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import TaskElement from '@/components/TaskElement';
+import { addTaskToDb, fetchTodaysTasks } from '@/db';
+import { useSQLiteContext } from 'expo-sqlite';
+import { useEffect, useRef, useState } from "react";
+import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { ensureNotificationPermissions, initNotiffications } from '../../notifications';
+import { Task } from '../../types';
 
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+initNotiffications();
+ensureNotificationPermissions();
 
-export default function HomeScreen() {
+export default function Index() {
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [addTask, setAddTask] = useState<boolean>(false);
+  const [taskValue, setTaskValue] = useState<string>('');
+  const newTaskRef = useRef(null);
+  const db = useSQLiteContext();
+
+  function onPress() {
+    setAddTask(true);
+  }
+
+  async function onSubmit() {
+    const date = Date.now();
+    const newTask: Task = { id: date, text: taskValue, created: date, assignedDate: date, isDone: false };
+    await addTaskToDb(db, newTask);
+    setTasks(prev => [...prev, newTask]);
+    setAddTask(false);
+    setTaskValue('');
+  }
+
+  function onCancel() {
+    setAddTask(false);
+    setTaskValue('');
+  }
+
+  useEffect(() => {
+    async function setup() {
+      const result = await fetchTodaysTasks(db);
+      if (result) {
+        setTasks(result);
+      }
+    }
+    setup();
+  }, [db]);
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+    <ScrollView style={styles.container}>
+      {tasks.length > 0
+        ? tasks.map(t => (
+          <TaskElement key={t.id} task={t} />
+        ))
+        : <Text>No tasks for today</Text>
+      }
+
+      {addTask && (
+        <View style={styles.taskInputWrapper}>
+          <TextInput
+            style={styles.taskInput}
+            ref={newTaskRef}
+            onChangeText={setTaskValue}
+            value={taskValue}
+            placeholder="Enter new task..."
+          />
+          <TouchableOpacity
+            style={styles.saveTaskBtn}
+            onPress={onSubmit}
+          >
+            <Text>Save</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.cancelTaskBtn}
+            onPress={onCancel}
+          >
+            <Text>Cancel</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      <TouchableOpacity
+        style={styles.createBtn}
+        onPress={onPress}
+      >
+        <Text style={styles.createBtnText}>+</Text>
+      </TouchableOpacity>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+  container: {
+    backgroundColor: 'darkgray',
+    borderColor: 'red',
+    borderWidth: 1,
+    gap: 2,
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
-  },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
+  createBtn: {
+    borderRadius: 4,
+    padding: 5,
     position: 'absolute',
+    top: '90%',
+    right: '5%',
+    backgroundColor: 'blue',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-});
+  createBtnText: {
+    fontWeight: 'bold',
+    fontSize: 30,
+    color: 'white',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  taskInputWrapper: {
+    display: 'flex',
+    flexDirection: 'row',
+    gap: 2,
+  },
+  taskInput: {
+    backgroundColor: 'white',
+    borderColor: 'green',
+    borderWidth: 1,
+    padding: 2,
+  },
+  saveTaskBtn: {
+    backgroundColor: 'green',
+    color: 'white',
+    padding: 2,
+  },
+  cancelTaskBtn: {
+    backgroundColor: 'red',
+    color: 'white',
+    padding: 2,
+  }
+})
