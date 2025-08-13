@@ -5,10 +5,16 @@ import { Task } from "./types";
 /*
 + fetch all tasks
 + add new task
-- edit task (text, notification, status, notif)
+! edit task (text, notification, status, notif)
+  + mark/unmark as done
+  ! edit text
+  - edit notification
 + delete task
 + fetch daily tasks
 - delete tasks after 7 days
+- move completed tasks to the bottom of the list
+- calendar
+- settings
 */
 
 export async function migrateDb(db: SQLite.SQLiteDatabase) {
@@ -39,7 +45,7 @@ export async function migrateDb(db: SQLite.SQLiteDatabase) {
   }
 }
 
-export async function fetchTodaysTasks(db: SQLite.SQLiteDatabase) {
+export async function fetchTodaysTasksFromDb(db: SQLite.SQLiteDatabase) {
   try {
     const curDate = new Date(Date.now());
     let startMidnight = new Date(curDate);
@@ -49,8 +55,8 @@ export async function fetchTodaysTasks(db: SQLite.SQLiteDatabase) {
     const result = await db.getAllAsync<Task>('SELECT * FROM tasks WHERE assignedDate >= ? AND assignedDate < ? ORDER BY assignedDate', startMidnight.getTime(), endMidnight.getTime());
     return result;
   } catch (error) {
-    Alert.alert(String(error));
     console.error(error);
+    throw error;
   }
 }
 
@@ -58,8 +64,8 @@ export async function addTaskToDb(db: SQLite.SQLiteDatabase, task: Task) {
   try {
     await db.runAsync('INSERT INTO tasks (text, created, assignedDate) VALUES (?, ?, ?)', task.text, task.created, task.assignedDate);
   } catch (error) {
-    Alert.alert(String(error));
     console.error(error);
+    throw error;
   }
 }
 
@@ -67,7 +73,16 @@ export async function deleteTaskFromDb(db: SQLite.SQLiteDatabase, id: number) {
   try {
     await db.runAsync('DELETE FROM tasks WHERE id = $id', { $id: id });
   } catch (error) {
-    Alert.alert(String(error));
     console.error(error);
+    throw error;
+  }
+}
+
+export async function toggleStatusInDb(db: SQLite.SQLiteDatabase, id: number) {
+  try {
+    await db.runAsync('UPDATE tasks SET isDone = NOT isDone WHERE id = ?', id);
+  } catch (error) {
+    console.error(error);
+    throw error;
   }
 }
