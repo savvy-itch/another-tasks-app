@@ -1,8 +1,8 @@
 import * as SQLite from 'expo-sqlite';
 import React, { createContext, useState } from "react";
 import { Alert } from 'react-native';
-import { addTaskToDb, deleteTaskFromDb, fetchTodaysTasksFromDb, toggleStatusInDb } from "./db";
-import { Task, TasksContextType } from "./types";
+import { addTaskToDb, deleteTaskFromDb, editTextInDb, fetchTodaysTasksFromDb, toggleStatusInDb } from "./db";
+import { Bool, Task, TasksContextType } from "./types";
 
 export const TasksContext = createContext<TasksContextType | null>(null);
 
@@ -37,7 +37,7 @@ export default function TasksProvider({ children }: TasksProviderProps) {
       await toggleStatusInDb(db, id);
       setTasks(prev =>
         prev.map(t =>
-          t.id === id ? { ...t, isDone: !t.isDone } : t
+          t.id === id ? { ...t, isDone: t.isDone ? Bool.FALSE : Bool.TRUE } : t
         ));
     } catch (error) {
       Alert.alert(String(error));
@@ -55,8 +55,28 @@ export default function TasksProvider({ children }: TasksProviderProps) {
     }
   }
 
+  async function editText(db: SQLite.SQLiteDatabase, id: number, newText: string) {
+    try {
+      await editTextInDb(db, id, newText);
+      setTasks(prev =>
+        prev.map(t =>
+          t.id === id ? { ...t, text: newText } : t
+        ));
+    } catch (error) {
+      Alert.alert(String(error));
+    }
+  }
+
   return (
-    <TasksContext.Provider value={{ tasks, addTask, setTasks, deleteTask, toggleStatus, fetchTodaysTasks }}>
+    <TasksContext.Provider value={{ 
+      tasks, 
+      addTask, 
+      setTasks, 
+      deleteTask, 
+      toggleStatus, 
+      fetchTodaysTasks,
+      editText,
+    }}>
       {children}
     </TasksContext.Provider>
   )

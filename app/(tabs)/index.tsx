@@ -1,11 +1,12 @@
 import TaskElement from '@/components/TaskElement';
+import { MAX_TASK_LENGTH } from '@/globals';
 import { useTasks } from '@/hooks/useTasks';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useEffect, useRef, useState } from "react";
 import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { ensureNotificationPermissions, initNotiffications } from '../../notifications';
-import { Task } from '../../types';
+import { Bool, Task } from '../../types';
 
 initNotiffications();
 ensureNotificationPermissions();
@@ -24,7 +25,7 @@ export default function Index() {
   async function onSubmit() {
     if (taskValue) {
       const date = Date.now();
-      const newTask: Task = { id: date, text: taskValue, created: date, assignedDate: date, isDone: false };
+      const newTask: Task = { id: date, text: taskValue, created: date, assignedDate: date, isDone: Bool.FALSE };
       addTask(db, newTask);
       setAddTaskMode(false);
       setTaskValue('');
@@ -58,6 +59,7 @@ export default function Index() {
               ref={newTaskRef}
               onChangeText={setTaskValue}
               value={taskValue}
+              maxLength={MAX_TASK_LENGTH}
               placeholder="Enter new task..."
             />
             <TouchableOpacity

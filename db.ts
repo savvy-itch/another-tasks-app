@@ -7,10 +7,12 @@ import { Task } from "./types";
 + add new task
 ! edit task (text, notification, status, notif)
   + mark/unmark as done
-  ! edit text
+  + edit text
   - edit notification
 + delete task
 + fetch daily tasks
+- create notification time picker
+- allow to choose notif time
 - delete tasks after 7 days
 - move completed tasks to the bottom of the list
 - calendar
@@ -81,6 +83,15 @@ export async function deleteTaskFromDb(db: SQLite.SQLiteDatabase, id: number) {
 export async function toggleStatusInDb(db: SQLite.SQLiteDatabase, id: number) {
   try {
     await db.runAsync('UPDATE tasks SET isDone = NOT isDone WHERE id = ?', id);
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+}
+
+export async function editTextInDb(db: SQLite.SQLiteDatabase, id: number, newText: string) {
+  try {
+    await db.runAsync('UPDATE tasks SET text = ? WHERE id = ?', newText, id);
   } catch (error) {
     console.error(error);
     throw error;
