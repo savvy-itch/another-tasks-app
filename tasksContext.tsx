@@ -1,7 +1,7 @@
 import * as SQLite from 'expo-sqlite';
 import React, { createContext, useState } from "react";
 import { Alert } from 'react-native';
-import { addTaskToDb, deleteTaskFromDb, editTextInDb, fetchTodaysTasksFromDb, toggleStatusInDb } from "./db";
+import { addTaskToDb, deleteTaskFromDb, editTextInDb, fetchTodaysTasksFromDb, setNotifTimeInDb, toggleStatusInDb } from "./db";
 import { Bool, Task, TasksContextType } from "./types";
 
 export const TasksContext = createContext<TasksContextType | null>(null);
@@ -67,6 +67,18 @@ export default function TasksProvider({ children }: TasksProviderProps) {
     }
   }
 
+  async function setNotifTime(db: SQLite.SQLiteDatabase, id: number, notifDate: number) {
+    try {
+      await setNotifTimeInDb(db, id, notifDate);
+      setTasks(prev =>
+        prev.map(t =>
+          t.id === id ? { ...t, notifDate } : t
+        ));
+    } catch (error) {
+      Alert.alert(String(error));
+    }
+  }
+
   return (
     <TasksContext.Provider value={{ 
       tasks, 
@@ -76,6 +88,7 @@ export default function TasksProvider({ children }: TasksProviderProps) {
       toggleStatus, 
       fetchTodaysTasks,
       editText,
+      setNotifTime
     }}>
       {children}
     </TasksContext.Provider>

@@ -11,6 +11,13 @@ import { Bool, Task } from '../../types';
 initNotiffications();
 ensureNotificationPermissions();
 
+const today = new Date(Date.now());
+const dateOptions: Intl.DateTimeFormatOptions = {
+  weekday: "short",
+  month: "long",
+  day: "numeric",
+}
+
 export default function Index() {
   const [addTaskMode, setAddTaskMode] = useState<boolean>(false);
   const [taskValue, setTaskValue] = useState<string>('');
@@ -43,7 +50,7 @@ export default function Index() {
 
   return (
     <ScrollView style={styles.container}>
-      <Text>Dev version</Text>
+      <Text style={styles.todayText}>{today.toLocaleDateString('en-US', dateOptions)}</Text>
       <View>
         {tasks.length > 0
           ? tasks.map(t => (
@@ -137,5 +144,9 @@ const styles = StyleSheet.create({
     backgroundColor: 'red',
     color: 'white',
     padding: 2,
+  },
+  todayText: {
+    fontSize: 20,
+    fontWeight: 'bold',
   }
 })

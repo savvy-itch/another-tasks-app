@@ -1,14 +1,17 @@
 import { MAX_TASK_LENGTH } from '@/globals';
 import { useTasks } from '@/hooks/useTasks';
-import { ensureNotificationPermissions } from '@/notifications';
 import { Task } from '@/types';
+import { padNumber } from '@/utils';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import Entypo from '@expo/vector-icons/Entypo';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import * as Notifications from 'expo-notifications';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useSQLiteContext } from 'expo-sqlite';
 import React, { useEffect, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import TimePicker from './TimePicker';
+
+const curTime = Date.now();
 
 export default function TaskElement({ task }: { task: Task }) {
   const db = useSQLiteContext();
@@ -16,24 +19,8 @@ export default function TaskElement({ task }: { task: Task }) {
   const [editTaskMode, setEditTaskMode] = useState<boolean>(false);
   const [taskValue, setTaskValue] = useState<string>(task.text);
   const [invalidInput, setInvalidInput] = useState<boolean>(false);
+  const [notifModalVisible, setNotifModalVisible] = useState<boolean>(false);
   const inputRef = useRef<TextInput>(null);
-
-  async function setNotification(body: string) {
-    if (!(await ensureNotificationPermissions()) || task.isDone) return;
-    const date = new Date(Date.now() + 15 * 1000); // in 15 secs from now
-    // date.setSeconds(0); // uncomment for prod
-
-    Notifications.scheduleNotificationAsync({
-      content: {
-        title: "Task reminder!",
-        body,
-      },
-      trigger: {
-        type: Notifications.SchedulableTriggerInputTypes.DATE,
-        date
-      },
-    });
-  }
 
   async function submitTextEdit() {
     if (taskValue) {
@@ -109,7 +96,7 @@ export default function TaskElement({ task }: { task: Task }) {
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.notifBtn}
-              onPress={() => setNotification(task.text)}
+              onPress={() => setNotifModalVisible(true)}
               disabled={task.isDone ? true : false}
             >
               <AntDesign name="bells" size={26} color="black" />
@@ -120,7 +107,14 @@ export default function TaskElement({ task }: { task: Task }) {
             >
               <AntDesign name="delete" size={26} color="black" />
             </TouchableOpacity>
+            <TouchableOpacity>
+              <MaterialCommunityIcons name="dots-horizontal" size={30} color="black" />
+            </TouchableOpacity>
           </View>
+          <TimePicker notifModalVisible={notifModalVisible} setNotifModalVisible={setNotifModalVisible} task={task} db={db} />
+          {(typeof(task.notifDate) === 'number' && !task.isDone && task.notifDate > curTime) && (
+            <Text>{padNumber(new Date(task.notifDate).getHours())}:{padNumber(new Date(task.notifDate).getMinutes())}</Text>
+          )}
         </>
       )
       }
@@ -144,7 +138,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    gap: 2,
+    gap: 4,
 
   },
   taskWrapper: {
@@ -170,8 +164,6 @@ const styles = StyleSheet.create({
   pressable: {
     flexShrink: 1,
     width: '100%',
-    borderColor: 'blue',
-    borderWidth: 1,
     padding: 2,
   },
   taskInput: {

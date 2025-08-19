@@ -9,6 +9,8 @@ import { Task } from "./types";
   + mark/unmark as done
   + edit text
   - edit notification
+  - delete notification
+- display notification time next to the task
 + delete task
 + fetch daily tasks
 - create notification time picker
@@ -16,7 +18,9 @@ import { Task } from "./types";
 - delete tasks after 7 days
 - move completed tasks to the bottom of the list
 - calendar
-- settings
+- settings:
+  - themes
+- sort task from undone to done and dynamically change their place once they're done/undone
 */
 
 export async function migrateDb(db: SQLite.SQLiteDatabase) {
@@ -92,6 +96,15 @@ export async function toggleStatusInDb(db: SQLite.SQLiteDatabase, id: number) {
 export async function editTextInDb(db: SQLite.SQLiteDatabase, id: number, newText: string) {
   try {
     await db.runAsync('UPDATE tasks SET text = ? WHERE id = ?', newText, id);
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+}
+
+export async function setNotifTimeInDb(db: SQLite.SQLiteDatabase, id: number, notifDate: number) {
+  try {
+    await db.runAsync('UPDATE tasks SET notifDate = ? WHERE id = ?', notifDate, id);
   } catch (error) {
     console.error(error);
     throw error;

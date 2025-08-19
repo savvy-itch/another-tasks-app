@@ -22,6 +22,7 @@ interface TasksContextType {
   toggleStatus: (db: SQLite.SQLiteDatabase, taskId: number) => void,
   fetchTodaysTasks: (db: SQLite.SQLiteDatabase) => void,
   editText: (db: SQLite.SQLiteDatabase, taskId: number, newText: string) => void,
+  setNotifTime: (db: SQLite.SQLiteDatabase, taskId: number, notifDate: number) => void,
 }
 
 export {
