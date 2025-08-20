@@ -1,7 +1,8 @@
+import * as Notifications from 'expo-notifications';
 import * as SQLite from 'expo-sqlite';
 import React, { createContext, useState } from "react";
 import { Alert } from 'react-native';
-import { addTaskToDb, deleteTaskFromDb, editTextInDb, fetchTodaysTasksFromDb, setNotifTimeInDb, toggleStatusInDb } from "./db";
+import { addTaskToDb, cancelNotifInDb, deleteTaskFromDb, editTextInDb, fetchTodaysTasksFromDb, setNotifTimeInDb, toggleStatusInDb } from "./db";
 import { Bool, Task, TasksContextType } from "./types";
 
 export const TasksContext = createContext<TasksContextType | null>(null);
@@ -67,9 +68,9 @@ export default function TasksProvider({ children }: TasksProviderProps) {
     }
   }
 
-  async function setNotifTime(db: SQLite.SQLiteDatabase, id: number, notifDate: number) {
+  async function setNotifTime(db: SQLite.SQLiteDatabase, id: number, notifDate: number, notifId: string) {
     try {
-      await setNotifTimeInDb(db, id, notifDate);
+      await setNotifTimeInDb(db, id, notifDate, notifId);
       setTasks(prev =>
         prev.map(t =>
           t.id === id ? { ...t, notifDate } : t
@@ -79,16 +80,30 @@ export default function TasksProvider({ children }: TasksProviderProps) {
     }
   }
 
+  async function deleteNotif(db: SQLite.SQLiteDatabase, taskId: number, notifId: string) {
+    try {
+      await Notifications.cancelScheduledNotificationAsync(notifId);
+      await cancelNotifInDb(db, taskId);
+      setTasks(prev =>
+        prev.map(t =>
+          t.id === taskId ? { ...t, notifDate: null, notifId: null } : t
+        ));
+    } catch (error) {
+      Alert.alert(String(error));
+    }
+  }
+
   return (
-    <TasksContext.Provider value={{ 
-      tasks, 
-      addTask, 
-      setTasks, 
-      deleteTask, 
-      toggleStatus, 
+    <TasksContext.Provider value={{
+      tasks,
+      addTask,
+      setTasks,
+      deleteTask,
+      toggleStatus,
       fetchTodaysTasks,
       editText,
-      setNotifTime
+      setNotifTime,
+      deleteNotif
     }}>
       {children}
     </TasksContext.Provider>

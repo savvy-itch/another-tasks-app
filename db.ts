@@ -2,36 +2,19 @@ import * as SQLite from 'expo-sqlite';
 import { Alert } from 'react-native';
 import { Task } from "./types";
 
-/*
-+ fetch all tasks
-+ add new task
-! edit task (text, notification, status, notif)
-  + mark/unmark as done
-  + edit text
-  - edit notification
-  - delete notification
-- display notification time next to the task
-+ delete task
-+ fetch daily tasks
-- create notification time picker
-- allow to choose notif time
-- delete tasks after 7 days
-- move completed tasks to the bottom of the list
-- calendar
-- settings:
-  - themes
-- sort task from undone to done and dynamically change their place once they're done/undone
-*/
-
 export async function migrateDb(db: SQLite.SQLiteDatabase) {
-  try {    
-    const DB_VERSION = 1;
-    const result = await db?.getFirstAsync<{ user_version: number }>('PRAGMA user_version');
-    let currentDbVersion = result?.user_version ?? 0;
-  
-    if (currentDbVersion >= DB_VERSION) return;
-  
-    if (currentDbVersion === 0) {
+  try {
+    const DB_VERSION = 2;
+    // const result = await db?.getFirstAsync<{ user_version: number }>('PRAGMA user_version');
+    // let currentDbVersion = result?.user_version ?? 0;
+
+    const tableExists = await db.getFirstAsync<{ name: string }>(
+      "SELECT name FROM sqlite_master WHERE type='table' AND name='tasks';"
+    );
+
+    // if (currentDbVersion >= DB_VERSION) return;
+
+    if (!tableExists) {
       await db.execAsync(`
         PRAGMA journal_mode = 'wal';
         CREATE TABLE tasks (
@@ -40,6 +23,7 @@ export async function migrateDb(db: SQLite.SQLiteDatabase) {
           created INTEGER NOT NULL,
           assignedDate INTEGER NOT NULL,
           notifDate INTEGER,
+          notifId TEXT,
           isDone BOOLEAN DEFAULT 0
         );
       `);
@@ -102,9 +86,27 @@ export async function editTextInDb(db: SQLite.SQLiteDatabase, id: number, newTex
   }
 }
 
-export async function setNotifTimeInDb(db: SQLite.SQLiteDatabase, id: number, notifDate: number) {
+export async function setNotifTimeInDb(db: SQLite.SQLiteDatabase, id: number, notifDate: number, notifId: string) {
   try {
-    await db.runAsync('UPDATE tasks SET notifDate = ? WHERE id = ?', notifDate, id);
+    await db.runAsync('UPDATE tasks SET notifDate = ?, notifId = ? WHERE id = ?', notifDate, notifId, id);
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+}
+
+export async function cancelNotifInDb(db: SQLite.SQLiteDatabase, id: number) {
+  try {
+    await db.runAsync('UPDATE tasks SET notifDate = ?, notifId = ? WHERE id = ?', null, null, id);
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+}
+
+export async function clearDB(db: SQLite.SQLiteDatabase) {
+  try {
+    await db.runAsync('DROP TABLE IF EXISTS tasks;');
   } catch (error) {
     console.error(error);
     throw error;

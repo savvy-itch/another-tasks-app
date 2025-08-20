@@ -10,8 +10,9 @@ interface Task {
   text: string,
   created: number, // which day task is associated with
   assignedDate: number,
-  notifDate?: number,
-  isDone: Bool
+  notifDate?: number | null,
+  notifId?: string | null,
+  isDone: Bool,
 };
 
 interface TasksContextType {
@@ -22,7 +23,8 @@ interface TasksContextType {
   toggleStatus: (db: SQLite.SQLiteDatabase, taskId: number) => void,
   fetchTodaysTasks: (db: SQLite.SQLiteDatabase) => void,
   editText: (db: SQLite.SQLiteDatabase, taskId: number, newText: string) => void,
-  setNotifTime: (db: SQLite.SQLiteDatabase, taskId: number, notifDate: number) => void,
+  setNotifTime: (db: SQLite.SQLiteDatabase, taskId: number, notifDate: number, notifId: string) => void,
+  deleteNotif: (db: SQLite.SQLiteDatabase, taskId: number, notifId: string) => void,
 }
 
 export {

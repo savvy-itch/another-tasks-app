@@ -5,7 +5,7 @@ import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/dat
 import * as Notifications from 'expo-notifications';
 import { SQLiteDatabase } from 'expo-sqlite';
 import React, { useState } from 'react';
-import { StyleSheet } from 'react-native';
+import { Alert, StyleSheet } from 'react-native';
 
 interface ModalProps {
   notifModalVisible: boolean,
@@ -19,24 +19,28 @@ export default function TimePicker({ notifModalVisible, setNotifModalVisible, ta
   const { setNotifTime } = useTasks();
 
   async function onChange(e: DateTimePickerEvent, selectedDate?: Date) {
-    if (e.type === 'set') {
-      if (selectedDate) {
-        // if the new date is not in the past
-        if (selectedDate.getTime() > Date.now()) {
-          selectedDate.setSeconds(0);
-          setNotifModalVisible(false);
-          setDate(selectedDate);
-          setNotification(task.text, selectedDate);
-          setNotifTime(db, task.id, selectedDate.getTime());
+    try {
+      if (e.type === 'set') {
+        if (selectedDate) {
+          // if the new date is not in the past
+          if (selectedDate.getTime() > Date.now()) {
+            selectedDate.setSeconds(0);
+            setNotifModalVisible(false);
+            setDate(selectedDate);
+            if ((await ensureNotificationPermissions()) || !task.isDone) {
+              const notifId: string = await setNotification(task.text, selectedDate);
+              setNotifTime(db, task.id, selectedDate.getTime(), notifId);
+            }
+          }
         }
       }
+    } catch (error) {
+      Alert.alert(String(error));
     }
   }
 
-  async function setNotification(body: string, notifDate: Date) {
-    if (!(await ensureNotificationPermissions()) || task.isDone) return;
-
-    Notifications.scheduleNotificationAsync({
+  async function setNotification(body: string, notifDate: Date): Promise<string> {
+    return Notifications.scheduleNotificationAsync({
       content: {
         title: `Task reminder!`,
         body,

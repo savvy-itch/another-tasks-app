@@ -20,7 +20,7 @@ export default function RootLayout() {
 const styles = StyleSheet.create({
   headerPadding: {
     height: 33,
-    backgroundColor: 'dimgray',
+    backgroundColor: 'hsla(0, 0%, 15%, 1.00)',
     position: 'fixed',
     left: 0,
     right: 0,

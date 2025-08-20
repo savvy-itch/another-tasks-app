@@ -1,7 +1,9 @@
 import TaskElement from '@/components/TaskElement';
+import { clearDB } from '@/db';
 import { MAX_TASK_LENGTH } from '@/globals';
 import { useTasks } from '@/hooks/useTasks';
 import AntDesign from '@expo/vector-icons/AntDesign';
+import * as Notifications from 'expo-notifications';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useEffect, useRef, useState } from "react";
 import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
@@ -24,6 +26,7 @@ export default function Index() {
   const newTaskRef = useRef(null);
   const db = useSQLiteContext();
   const { tasks, addTask, fetchTodaysTasks } = useTasks();
+  const [scheduledNotifs, setScheduledNotifs] = useState<Notifications.NotificationRequest[]>([]);
 
   function onPress() {
     setAddTaskMode(true);
@@ -48,50 +51,75 @@ export default function Index() {
     fetchTodaysTasks(db);
   }, [db]);
 
+  // async function getAllNotifs() {
+  //   const res = await Notifications.getAllScheduledNotificationsAsync();
+  //   if (res) {
+  //     setScheduledNotifs(res);
+  //   }
+  // }
+
+  // useEffect(() => {
+  //   getAllNotifs();
+  // }, []);
+
   return (
-    <ScrollView style={styles.container}>
-      <Text style={styles.todayText}>{today.toLocaleDateString('en-US', dateOptions)}</Text>
-      <View>
-        {tasks.length > 0
-          ? tasks.map(t => (
-            <TaskElement key={t.id} task={t} />
-          ))
-          : <Text>No tasks for today</Text>
-        }
+    <>
+      <ScrollView style={styles.container}>
+        <Text style={styles.todayText}>{today.toLocaleDateString('en-US', dateOptions)}</Text>
+        <View>
+          {tasks.length > 0
+            ? tasks.map(t => (
+              <TaskElement key={t.id} task={t} />
+            ))
+            : <Text>No tasks for today</Text>
+          }
 
-        {addTaskMode && (
-          <View style={styles.taskInputWrapper}>
-            <TextInput
-              style={styles.taskInput}
-              ref={newTaskRef}
-              onChangeText={setTaskValue}
-              value={taskValue}
-              maxLength={MAX_TASK_LENGTH}
-              placeholder="Enter new task..."
-            />
-            <TouchableOpacity
-              style={styles.saveTaskBtn}
-              onPress={onSubmit}
-            >
-              <Text>Save</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.cancelTaskBtn}
-              onPress={onCancel}
-            >
-              <Text>Cancel</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-      </View>
+          {addTaskMode && (
+            <View style={styles.taskInputWrapper}>
+              <TextInput
+                style={styles.taskInput}
+                ref={newTaskRef}
+                onChangeText={setTaskValue}
+                value={taskValue}
+                maxLength={MAX_TASK_LENGTH}
+                placeholder="Enter new task..."
+              />
+              <TouchableOpacity
+                style={styles.saveTaskBtn}
+                onPress={onSubmit}
+              >
+                <Text>Save</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.cancelTaskBtn}
+                onPress={onCancel}
+              >
+                <Text>Cancel</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+        </View>
 
-      <TouchableOpacity
-        style={styles.createBtn}
-        onPress={onPress}
-      >
-        <AntDesign style={styles.createBtnIcon} name="plus" size={28} />
-      </TouchableOpacity>
-    </ScrollView>
+        <TouchableOpacity
+          style={styles.createBtn}
+          onPress={onPress}
+        >
+          <AntDesign style={styles.createBtnIcon} name="plus" size={28} />
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.clearBtn}
+          onPress={() => clearDB(db)}
+        >
+          <Text>Clear DB</Text>
+        </TouchableOpacity>
+      </ScrollView>
+      {/* <FlatList
+        data={scheduledNotifs}
+        renderItem={({ item }) => <Text>{item.identifier}</Text>}
+        keyExtractor={item => item.identifier}
+      /> */}
+    </>
   );
 }
 
@@ -111,9 +139,9 @@ const styles = StyleSheet.create({
   createBtn: {
     borderRadius: '50%',
     position: 'fixed',
-    bottom: '15%',
-    right: '5%',
-    // right: '-80%',
+    bottom: '-100%',
+    // right: '5%',
+    right: '-80%',
     backgroundColor: 'royalblue',
     display: 'flex',
     justifyContent: 'center',
@@ -148,5 +176,12 @@ const styles = StyleSheet.create({
   todayText: {
     fontSize: 20,
     fontWeight: 'bold',
+  },
+  clearBtn: {
+    padding: 4,
+    backgroundColor: 'red',
+    color: 'white',
+    marginHorizontal: 'auto',
+    marginTop: 8
   }
 })
