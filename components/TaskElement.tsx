@@ -1,15 +1,17 @@
 import { MAX_TASK_LENGTH } from '@/globals';
+import { useGeneral } from '@/hooks/useGeneral';
 import { useTasks } from '@/hooks/useTasks';
 import { Task } from '@/types';
 import { padNumber } from '@/utils';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import Entypo from '@expo/vector-icons/Entypo';
 import Feather from '@expo/vector-icons/Feather';
+import FontAwesome from '@expo/vector-icons/FontAwesome';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useSQLiteContext } from 'expo-sqlite';
 import React, { useEffect, useRef, useState } from 'react';
-import { Pressable, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, Pressable, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import TimePicker from './TimePicker';
 
 export default function TaskElement({ task }: { task: Task }) {
@@ -19,7 +21,7 @@ export default function TaskElement({ task }: { task: Task }) {
   const [taskValue, setTaskValue] = useState<string>(task.text);
   const [invalidInput, setInvalidInput] = useState<boolean>(false);
   const [notifModalVisible, setNotifModalVisible] = useState<boolean>(false);
-  const [showDropdown, setShowDropdown] = useState<boolean>(false);
+  const { openDropdownId, setOpenDropdownId } = useGeneral();
   const inputRef = useRef<TextInput>(null);
 
   async function submitTextEdit() {
@@ -47,12 +49,19 @@ export default function TaskElement({ task }: { task: Task }) {
 
   async function cancelNotif() {
     if (task.notifId) {
+      Alert.alert(task.notifId);
       deleteNotif(db, task.id, task.notifId);
     }
   }
 
+  function handleStatusToggle() {
+    toggleStatus(db, task.id)
+    setOpenDropdownId(0);
+  }
+
   useEffect(() => {
     if (editTaskMode) {
+      setOpenDropdownId(0);
       inputRef.current?.focus();
     }
   }, [editTaskMode]);
@@ -73,34 +82,43 @@ export default function TaskElement({ task }: { task: Task }) {
             <TouchableOpacity
               onPress={submitTextEdit}
             >
-              <Ionicons name="checkmark" size={26} color="green" />
+              <Ionicons name="checkmark" size={28} color="green" />
             </TouchableOpacity>
             <TouchableOpacity
               onPress={exitEditMode}
             >
-              <Entypo name="cross" size={26} color="red" />
+              <Entypo name="cross" size={28} color="red" />
             </TouchableOpacity>
           </View>
         </>
       ) : (
         <>
-          <Pressable style={styles.pressable} onPress={() => toggleStatus(db, task.id)}>
+          <Pressable style={styles.pressable} onPress={handleStatusToggle}>
             <Text
               style={task.isDone ? styles.taskDone : styles.taskText}
               textBreakStrategy='simple'
             >
               {task.text}
             </Text>
-            <Text style={styles.devText}>notifId: {task.notifId}</Text>
+            {/* <Text style={styles.devText}>notifId: {task.notifId}</Text>
             <Text style={styles.devText}>notifDate: {(task.notifDate)}</Text>
-            <Text style={styles.devText}>isDone: {task.isDone ? 'done' : 'not done'}</Text>
+            <Text style={styles.devText}>isDone: {task.isDone ? 'done' : 'not done'}</Text> */}
+            
+            {(typeof (task.notifDate) === 'number' && !task.isDone && task.notifDate > Date.now()) && (
+              <View style={styles.notifTimeWrapper}>
+                <FontAwesome name="bell" size={16} color="gray" />
+                <Text style={styles.notifTimeText}>{padNumber(new Date(task.notifDate).getHours())}:{padNumber(new Date(task.notifDate).getMinutes())}</Text>
+              </View>
+            )}
           </Pressable>
+
+          {/* the dropdown */}
           <View style={styles.taskBtnWrapper}>
             <View style={styles.dropdownContainer}>
-              <TouchableOpacity onPress={() => setShowDropdown(!showDropdown)}>
-                <MaterialCommunityIcons name="dots-horizontal" size={30} color="black" />
+              <TouchableOpacity onPress={() => setOpenDropdownId(task.id)}>
+                <MaterialCommunityIcons name="dots-horizontal" size={30} color="gray" />
               </TouchableOpacity>
-              {showDropdown && (
+              {(task.id === openDropdownId) && (
                 <View style={styles.dropdown}>
                   <TouchableOpacity
                     style={[styles.notifBtn, styles.dropdownOption]}
@@ -125,7 +143,7 @@ export default function TaskElement({ task }: { task: Task }) {
                     <AntDesign name="delete" size={26} color="black" />
                     <Text>Delete</Text>
                   </TouchableOpacity>
-                  {task.notifId && !task.isDone && (typeof (task.notifDate) === 'number') && task.notifDate > Date.now() && (
+                  {!task.isDone && (typeof (task.notifDate) === 'number') && task.notifDate > Date.now() && (
                     <TouchableOpacity
                       style={styles.dropdownOption}
                       onPress={cancelNotif}
@@ -138,10 +156,8 @@ export default function TaskElement({ task }: { task: Task }) {
               )}
             </View>
           </View>
+
           <TimePicker notifModalVisible={notifModalVisible} setNotifModalVisible={setNotifModalVisible} task={task} db={db} />
-          {(typeof (task.notifDate) === 'number' && !task.isDone && task.notifDate > Date.now()) && (
-            <Text>{padNumber(new Date(task.notifDate).getHours())}:{padNumber(new Date(task.notifDate).getMinutes())}</Text>
-          )}
         </>
       )
       }
@@ -178,7 +194,8 @@ const styles = StyleSheet.create({
     padding: 5,
     borderRadius: 5,
     backgroundColor: 'white',
-    maxWidth: '100%',
+    width: '100%',
+    minHeight: 'auto',
   },
   taskText: {
     fontSize: 20,
@@ -191,7 +208,8 @@ const styles = StyleSheet.create({
   pressable: {
     flexShrink: 1,
     width: '100%',
-    padding: 2,
+    paddingHorizontal: 2,
+    paddingVertical: 8,
   },
   taskInput: {
     fontSize: 20,
@@ -240,5 +258,15 @@ const styles = StyleSheet.create({
   },
   lastDropdownOption: {
     borderBottomWidth: 0
+  },
+  notifTimeWrapper: {
+    marginTop: 10,
+    display: 'flex',
+    alignItems: 'center',
+    gap: 6,
+    flexDirection: 'row',
+  },
+  notifTimeText: {
+    color: 'gray',
   }
 });

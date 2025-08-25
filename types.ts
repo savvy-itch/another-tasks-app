@@ -25,11 +25,16 @@ interface TasksContextType {
   editText: (db: SQLite.SQLiteDatabase, taskId: number, newText: string) => void,
   setNotifTime: (db: SQLite.SQLiteDatabase, taskId: number, notifDate: number, notifId: string) => void,
   deleteNotif: (db: SQLite.SQLiteDatabase, taskId: number, notifId: string) => void,
+  deleteExpiredTasks: (db: SQLite.SQLiteDatabase) => void,
+};
+
+interface GeneralContextType {
+  openDropdownId: number,
+  setOpenDropdownId: React.Dispatch<React.SetStateAction<number>>,
 }
 
 export {
-  Bool,
-  Task,
+  Bool, GeneralContextType, Task,
   TasksContextType
 };
 

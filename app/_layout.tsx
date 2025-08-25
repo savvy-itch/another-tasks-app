@@ -1,17 +1,21 @@
 import { migrateDb } from "@/db";
+import GeneralProvider from "@/generalContext";
 import TasksProvider from "@/tasksContext";
 import { Stack } from "expo-router";
 import { SQLiteProvider } from 'expo-sqlite';
 import { StyleSheet, View } from "react-native";
 
 export default function RootLayout() {
+
   return (
     <SQLiteProvider databaseName="tasks.db" onInit={migrateDb}>
       <View style={styles.headerPadding} />
       <TasksProvider>
-        <Stack>
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        </Stack>
+        <GeneralProvider>
+          <Stack>
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          </Stack>
+        </GeneralProvider>
       </TasksProvider>
     </SQLiteProvider>
   );

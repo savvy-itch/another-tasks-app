@@ -70,7 +70,7 @@ export async function deleteTaskFromDb(db: SQLite.SQLiteDatabase, id: number) {
 
 export async function toggleStatusInDb(db: SQLite.SQLiteDatabase, id: number) {
   try {
-    await db.runAsync('UPDATE tasks SET isDone = NOT isDone WHERE id = ?', id);
+    await db.runAsync('UPDATE tasks SET isDone = NOT isDone, notifDate = ?, notifId = ? WHERE id = ?', null, null, id);
   } catch (error) {
     console.error(error);
     throw error;
@@ -107,6 +107,25 @@ export async function cancelNotifInDb(db: SQLite.SQLiteDatabase, id: number) {
 export async function clearDB(db: SQLite.SQLiteDatabase) {
   try {
     await db.runAsync('DROP TABLE IF EXISTS tasks;');
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+}
+
+export async function deleteExpiredTasksFromDb(db: SQLite.SQLiteDatabase, expDate: number) {
+  try {
+    await db.runAsync('DELETE FROM tasks WHERE assignedDate < ?', expDate);
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+}
+
+export async function fetchAllTasksFromDb(db: SQLite.SQLiteDatabase) {
+  try {
+    const result = await db.getAllAsync<Task>('SELECT * FROM tasks ORDER BY assignedDate');
+    return result;
   } catch (error) {
     console.error(error);
     throw error;

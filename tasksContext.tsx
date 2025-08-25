@@ -2,7 +2,8 @@ import * as Notifications from 'expo-notifications';
 import * as SQLite from 'expo-sqlite';
 import React, { createContext, useState } from "react";
 import { Alert } from 'react-native';
-import { addTaskToDb, cancelNotifInDb, deleteTaskFromDb, editTextInDb, fetchTodaysTasksFromDb, setNotifTimeInDb, toggleStatusInDb } from "./db";
+import { addTaskToDb, cancelNotifInDb, deleteExpiredTasksFromDb, deleteTaskFromDb, editTextInDb, fetchTodaysTasksFromDb, setNotifTimeInDb, toggleStatusInDb } from "./db";
+import { DAYS_TO_TASK_EXPIRATION } from './globals';
 import { Bool, Task, TasksContextType } from "./types";
 
 export const TasksContext = createContext<TasksContextType | null>(null);
@@ -38,7 +39,12 @@ export default function TasksProvider({ children }: TasksProviderProps) {
       await toggleStatusInDb(db, id);
       setTasks(prev =>
         prev.map(t =>
-          t.id === id ? { ...t, isDone: t.isDone ? Bool.FALSE : Bool.TRUE } : t
+          t.id === id ? {
+            ...t,
+            isDone: t.isDone ? Bool.FALSE : Bool.TRUE,
+            notifDate: null,
+            notifId: null,
+          } : t
         ));
     } catch (error) {
       Alert.alert(String(error));
@@ -73,8 +79,9 @@ export default function TasksProvider({ children }: TasksProviderProps) {
       await setNotifTimeInDb(db, id, notifDate, notifId);
       setTasks(prev =>
         prev.map(t =>
-          t.id === id ? { ...t, notifDate } : t
+          t.id === id ? { ...t, notifDate, notifId } : t
         ));
+      // Alert.alert(`Set notification: ${notifId}`);
     } catch (error) {
       Alert.alert(String(error));
     }
@@ -88,6 +95,18 @@ export default function TasksProvider({ children }: TasksProviderProps) {
         prev.map(t =>
           t.id === taskId ? { ...t, notifDate: null, notifId: null } : t
         ));
+      Alert.alert(`Cancelled notification: ${notifId}`);
+    } catch (error) {
+      Alert.alert(String(error));
+    }
+  }
+
+  async function deleteExpiredTasks(db: SQLite.SQLiteDatabase) {
+    try {
+      const expDate = Date.now() - DAYS_TO_TASK_EXPIRATION * 24 * 60 * 60 * 1000;
+      await deleteExpiredTasksFromDb(db, expDate);
+      const updatedTasks = tasks.filter(t => t.assignedDate > expDate);
+      setTasks(updatedTasks);
     } catch (error) {
       Alert.alert(String(error));
     }
@@ -103,7 +122,8 @@ export default function TasksProvider({ children }: TasksProviderProps) {
       fetchTodaysTasks,
       editText,
       setNotifTime,
-      deleteNotif
+      deleteNotif,
+      deleteExpiredTasks,
     }}>
       {children}
     </TasksContext.Provider>

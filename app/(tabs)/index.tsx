@@ -1,12 +1,13 @@
 import TaskElement from '@/components/TaskElement';
-import { clearDB } from '@/db';
+import { clearDB, fetchAllTasksFromDb } from '@/db';
 import { MAX_TASK_LENGTH } from '@/globals';
+import { useGeneral } from '@/hooks/useGeneral';
 import { useTasks } from '@/hooks/useTasks';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import * as Notifications from 'expo-notifications';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useEffect, useRef, useState } from "react";
-import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { ensureNotificationPermissions, initNotiffications } from '../../notifications';
 import { Bool, Task } from '../../types';
 
@@ -25,8 +26,10 @@ export default function Index() {
   const [taskValue, setTaskValue] = useState<string>('');
   const newTaskRef = useRef(null);
   const db = useSQLiteContext();
-  const { tasks, addTask, fetchTodaysTasks } = useTasks();
-  const [scheduledNotifs, setScheduledNotifs] = useState<Notifications.NotificationRequest[]>([]);
+  const { tasks, addTask, setTasks, fetchTodaysTasks, deleteExpiredTasks } = useTasks();
+  const { setOpenDropdownId } = useGeneral();
+  const [allNotifs, setAllNotifs] = useState<Notifications.NotificationRequest[]>([]);
+  const [allTasks, setAllTasks] = useState<Task[]>([]);
 
   function onPress() {
     setAddTaskMode(true);
@@ -47,26 +50,51 @@ export default function Index() {
     setTaskValue('');
   }
 
+  async function getAllNotifs() {
+    try {
+      const notifs: Notifications.NotificationRequest[] = await Notifications.getAllScheduledNotificationsAsync();
+      setAllNotifs(notifs);
+    } catch (error) {
+      Alert.alert(String(error));
+    }
+  }
+
+  async function resetData() {
+    try {
+      await Notifications.cancelAllScheduledNotificationsAsync();
+      setTasks([]);
+      clearDB(db);
+      Alert.alert('db reset');
+    } catch (error) {
+      Alert.alert(String(error));
+    }
+  }
+
+  async function fetchAllTasks() {
+    try {
+      const res = await fetchAllTasksFromDb(db);
+      setAllTasks(res);
+    } catch (error) {
+      Alert.alert(String(error));
+    }
+  }
+
   useEffect(() => {
+    deleteExpiredTasks(db);
     fetchTodaysTasks(db);
+    fetchAllTasks();
   }, [db]);
 
-  // async function getAllNotifs() {
-  //   const res = await Notifications.getAllScheduledNotificationsAsync();
-  //   if (res) {
-  //     setScheduledNotifs(res);
-  //   }
-  // }
-
-  // useEffect(() => {
-  //   getAllNotifs();
-  // }, []);
+  useEffect(() => {
+    getAllNotifs();
+  }, [tasks]);
 
   return (
-    <>
-      <ScrollView style={styles.container}>
+    <ScrollView style={styles.container} contentContainerStyle={{ flexGrow: 1 }}>
+      <Pressable style={[StyleSheet.absoluteFillObject, styles.overlay]} onPress={() => setOpenDropdownId(0)} />
+      <View>
         <Text style={styles.todayText}>{today.toLocaleDateString('en-US', dateOptions)}</Text>
-        <View>
+        <View style={styles.tasksContainer}>
           {tasks.length > 0
             ? tasks.map(t => (
               <TaskElement key={t.id} task={t} />
@@ -109,17 +137,28 @@ export default function Index() {
 
         <TouchableOpacity
           style={styles.clearBtn}
-          onPress={() => clearDB(db)}
+          onPress={resetData}
         >
           <Text>Clear DB</Text>
         </TouchableOpacity>
-      </ScrollView>
-      {/* <FlatList
-        data={scheduledNotifs}
-        renderItem={({ item }) => <Text>{item.identifier}</Text>}
-        keyExtractor={item => item.identifier}
-      /> */}
-    </>
+      </View>
+
+      {allNotifs.length > 0 ? (
+        <View>
+          {allNotifs.map(n => (
+            <Text key={n.identifier}>{n.identifier}</Text>
+          ))}
+        </View>
+      ) : (
+        <Text>No scheduled notifications</Text>
+      )}
+
+      <View>
+        {allTasks.map(item => (
+          <Text key={item.id}>{item.assignedDate} - {item.text}</Text>
+        ))}
+      </View>
+    </ScrollView>
   );
 }
 
@@ -128,9 +167,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#FBF3D5',
     gap: 6,
     padding: 5,
-    minHeight: 100,
-    position: 'relative',
-    paddingTop: 30
+    minHeight: '100%',
+    paddingTop: 25,
+    borderWidth: 1,
+    borderColor: 'blue',
   },
   headerPadding: {
     height: 40,
@@ -139,8 +179,9 @@ const styles = StyleSheet.create({
   createBtn: {
     borderRadius: '50%',
     position: 'fixed',
-    bottom: '-100%',
+    // bottom: '0%',
     // right: '5%',
+    top: '160%',
     right: '-80%',
     backgroundColor: 'royalblue',
     display: 'flex',
@@ -176,6 +217,7 @@ const styles = StyleSheet.create({
   todayText: {
     fontSize: 20,
     fontWeight: 'bold',
+    marginBottom: 6,
   },
   clearBtn: {
     padding: 4,
@@ -183,5 +225,13 @@ const styles = StyleSheet.create({
     color: 'white',
     marginHorizontal: 'auto',
     marginTop: 8
-  }
+  },
+  overlay: {
+    borderWidth: 1,
+    borderColor: 'red',
+    minHeight: '100%',
+  },
+  tasksContainer: {
+    gap: 5,
+  } 
 })

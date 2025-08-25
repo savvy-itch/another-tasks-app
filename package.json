@@ -40,7 +40,8 @@
     "expo-dev-client": "~5.2.4",
     "expo-notifications": "~0.31.4",
     "expo-sqlite": "~15.2.14",
-    "@react-native-community/datetimepicker": "8.4.1"
+    "@react-native-community/datetimepicker": "8.4.1",
+    "@expo/ui": "~0.1.1-alpha.10"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
