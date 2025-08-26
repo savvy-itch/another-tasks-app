@@ -104,6 +104,10 @@ export default function TasksProvider({ children }: TasksProviderProps) {
   async function deleteExpiredTasks(db: SQLite.SQLiteDatabase) {
     try {
       const expDate = Date.now() - DAYS_TO_TASK_EXPIRATION * 24 * 60 * 60 * 1000;
+      // const expDate = new Date(Date.now());
+      // expDate.setHours(0);
+      // expDate.setMinutes(0);
+      // expDate.setSeconds(0);
       await deleteExpiredTasksFromDb(db, expDate);
       const updatedTasks = tasks.filter(t => t.assignedDate > expDate);
       setTasks(updatedTasks);

@@ -1,13 +1,13 @@
 import TaskElement from '@/components/TaskElement';
 import { clearDB, fetchAllTasksFromDb } from '@/db';
-import { MAX_TASK_LENGTH } from '@/globals';
+import { MAIN_BG, MAX_TASK_LENGTH } from '@/globals';
 import { useGeneral } from '@/hooks/useGeneral';
 import { useTasks } from '@/hooks/useTasks';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import * as Notifications from 'expo-notifications';
 import { useSQLiteContext } from 'expo-sqlite';
-import { useEffect, useRef, useState } from "react";
-import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Alert, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { ensureNotificationPermissions, initNotiffications } from '../../notifications';
 import { Bool, Task } from '../../types';
 
@@ -30,6 +30,18 @@ export default function Index() {
   const { setOpenDropdownId } = useGeneral();
   const [allNotifs, setAllNotifs] = useState<Notifications.NotificationRequest[]>([]);
   const [allTasks, setAllTasks] = useState<Task[]>([]);
+  const [refreshing, setRefreshing] = useState<boolean>(false);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await fetchTodaysTasks(db);
+    } catch (error) {
+      Alert.alert(`Error during refresh: ${String(error)}`);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [db, fetchTodaysTasks]);
 
   function onPress() {
     setAddTaskMode(true);
@@ -90,7 +102,16 @@ export default function Index() {
   }, [tasks]);
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={{ flexGrow: 1 }}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={{ flexGrow: 1 }}
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+        />
+      }
+    >
       <Pressable style={[StyleSheet.absoluteFillObject, styles.overlay]} onPress={() => setOpenDropdownId(0)} />
       <View>
         <Text style={styles.todayText}>{today.toLocaleDateString('en-US', dateOptions)}</Text>
@@ -164,7 +185,7 @@ export default function Index() {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#FBF3D5',
+    backgroundColor: MAIN_BG,
     gap: 6,
     padding: 5,
     minHeight: '100%',
@@ -233,5 +254,5 @@ const styles = StyleSheet.create({
   },
   tasksContainer: {
     gap: 5,
-  } 
+  }
 })
