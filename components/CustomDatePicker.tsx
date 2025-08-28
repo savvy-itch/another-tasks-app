@@ -1,5 +1,4 @@
 import { fetchAllTasksFromDb } from '@/db';
-import { useTasks } from '@/hooks/useTasks';
 import { Task } from '@/types';
 import { useSQLiteContext } from 'expo-sqlite';
 import React, { useEffect, useState } from 'react';
@@ -8,23 +7,58 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 const weekdays: string[] = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const totalSlots = 35;
 const dayBtnSize = 34;
+const trueToday = new Date();
 
 export default function CustomDatePicker() {
   const [curDate, setCurDate] = useState<Date>(new Date(Date.now()));
   const [monthSlots, setMonthSlots] = useState<number[]>([]);
   const [allTasks, setAllTasks] = useState<Task[]>([]);
   const [daysWithTasks, setDaysWithTasks] = useState<Task[]>([]);
-  const { tasks } = useTasks();
   const db = useSQLiteContext();
 
   async function fetchAllTasks() {
     try {
       const res = await fetchAllTasksFromDb(db);
       setAllTasks(res);
-      setDaysWithTasks(res.filter(t => new Date(t.assignedDate).getMonth() === curDate.getMonth() && new Date(t.assignedDate).getFullYear() === curDate.getFullYear()));
+      // Keys are needed to avoid unnecessary Date objects creation and its method calls
+      const curDateKey = `${curDate.getMonth()}-${curDate.getFullYear()}`;
+      setDaysWithTasks(res.filter(t => {
+        const d = new Date(t.assignedDate);
+        const taskKey = `${d.getMonth()}-${d.getFullYear()}`;
+        return taskKey === curDateKey;
+      }));
     } catch (error) {
       console.error(error);
     }
+  }
+
+  // allow previous months as far back as 1 month before the current one (true current)
+  function getPrevMonth() {
+    const prev = new Date(curDate.getFullYear(), curDate.getMonth() - 1);
+    if (curDate.getFullYear() > trueToday.getFullYear() || (prev.getMonth() + 1) >= trueToday.getMonth()) {
+      setCurDate(prev);
+    }
+  }
+
+  function getNextMonth() {
+    const next = new Date(curDate.getFullYear(), curDate.getMonth() + 1);
+    setCurDate(next);
+  }
+
+  function populateMonthSlots() {
+    const arr: number[] = [];
+    const dayOffset = new Date(curDate.getFullYear(), curDate.getMonth(), 1).getDay();
+    let amountOfDaysInMonth = new Date(curDate.getFullYear(), curDate.getMonth() + 1, 0).getDate();
+    for (let i = 0; i < totalSlots; i++) {
+      // set weekdays that don't belong to current month to 0
+      if (((i + 1) < dayOffset) || amountOfDaysInMonth === 0) {
+        arr.push(0);
+      } else {
+        arr.push(i - dayOffset + 2);
+        amountOfDaysInMonth--;
+      }
+    }
+    setMonthSlots(arr);
   }
 
   useEffect(() => {
@@ -32,29 +66,28 @@ export default function CustomDatePicker() {
   }, [db]);
 
   useEffect(() => {
-    const arr: number[] = [];
-    let amountOfDaysInMonth = new Date(2025, curDate.getMonth() + 1, 0).getDate();
-    for (let i = 0; i < totalSlots; i++) {
-      // set weekdays that don't belong to current month to 0
-      if (((i + 1) < curDate.getDay()) || amountOfDaysInMonth === 0) {
-        arr.push(0);
-      } else {
-        arr.push(i - curDate.getDay() + 2);
-        amountOfDaysInMonth--;
-      }
-    }
-    setMonthSlots(arr);
-  }, []);
+    populateMonthSlots();
+  }, [curDate]);
 
   return (
     <View style={styles.calendar}>
       {/* nav bar with prev/next month button and current month */}
       <View style={styles.nav}>
-        <Pressable>
-          <Text style={styles.navText}>&lt;</Text>
+        <Pressable
+          onPress={getPrevMonth}
+          disabled={curDate.getFullYear() > trueToday.getFullYear() ? false : !((curDate.getMonth() + 1) >= trueToday.getMonth())}
+          style={styles.navBtn}
+        >
+          {/* 6 + 1 >= 7 */}
+          <Text style={[styles.navText, (curDate.getFullYear() < trueToday.getFullYear() ||
+  (curDate.getFullYear() === trueToday.getFullYear() &&
+   curDate.getMonth() < trueToday.getMonth())) && styles.disabledArrow]}>&lt;</Text>
         </Pressable>
         <Text style={styles.navText}>{Intl.DateTimeFormat("en-US", { month: "long" }).format(curDate)} {curDate.getFullYear()}</Text>
-        <Pressable>
+        <Pressable
+          onPress={getNextMonth}
+          style={styles.navBtn}
+        >
           <Text style={styles.navText}>&gt;</Text>
         </Pressable>
       </View>
@@ -71,7 +104,7 @@ export default function CustomDatePicker() {
             ? <View key={i} style={styles.daySlot}><View style={styles.emptySlot}></View></View>
             : <View key={i} style={styles.daySlot}>
               <Pressable style={[styles.slotBtn, (daysWithTasks.some(d => new Date(d.assignedDate).getDate() === s) && styles.hasTasks)]}>
-                <Text 
+                <Text
                   style={curDate.getDate() === s && styles.today}
                 >
                   {s}
@@ -145,5 +178,11 @@ const styles = StyleSheet.create({
   },
   hasTasks: {
     backgroundColor: 'hsla(137, 78%, 81%, 1.00)',
+  },
+  disabledArrow: {
+    color: 'hsla(0, 0%, 63%, 1.00)'
+  },
+  navBtn: {
+    padding: 5,
   }
 });
