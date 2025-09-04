@@ -50,6 +50,20 @@ export async function fetchTodaysTasksFromDb(db: SQLite.SQLiteDatabase) {
   }
 }
 
+export async function fetchTasksForDayFromDb(db: SQLite.SQLiteDatabase, targetDate: Date) {
+  try {
+    let startMidnight = new Date(targetDate);
+    startMidnight.setHours(0, 0, 0, 0);
+    let endMidnight = new Date(targetDate);
+    endMidnight.setHours(24, 0, 0, 0);
+    const result = await db.getAllAsync<Task>('SELECT * FROM tasks WHERE assignedDate >= ? AND assignedDate < ? ORDER BY assignedDate', startMidnight.getTime(), endMidnight.getTime());
+    return result;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+}
+
 export async function addTaskToDb(db: SQLite.SQLiteDatabase, task: Task) {
   try {
     await db.runAsync('INSERT INTO tasks (text, created, assignedDate) VALUES (?, ?, ?)', task.text, task.created, task.assignedDate);

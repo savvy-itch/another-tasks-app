@@ -137,7 +137,7 @@ export default function TaskElement({ task }: { task: Task }) {
                     <Text>Notification</Text>
                   </TouchableOpacity>
                   <TouchableOpacity
-                    style={[styles.dropdownOption]}
+                    style={[styles.notifBtn, styles.dropdownOption]}
                     onPress={() => deleteTask(db, task.id)}
                   >
                     <AntDesign name="delete" size={26} color="black" />

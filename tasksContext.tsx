@@ -2,7 +2,7 @@ import * as Notifications from 'expo-notifications';
 import * as SQLite from 'expo-sqlite';
 import React, { createContext, useState } from "react";
 import { Alert } from 'react-native';
-import { addTaskToDb, cancelNotifInDb, deleteExpiredTasksFromDb, deleteTaskFromDb, editTextInDb, fetchTodaysTasksFromDb, setNotifTimeInDb, toggleStatusInDb } from "./db";
+import { addTaskToDb, cancelNotifInDb, deleteExpiredTasksFromDb, deleteTaskFromDb, editTextInDb, fetchAllTasksFromDb, fetchTasksForDayFromDb, fetchTodaysTasksFromDb, setNotifTimeInDb, toggleStatusInDb } from "./db";
 import { DAYS_TO_TASK_EXPIRATION } from './globals';
 import { Bool, Task, TasksContextType } from "./types";
 
@@ -14,6 +14,19 @@ interface TasksProviderProps {
 
 export default function TasksProvider({ children }: TasksProviderProps) {
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+
+  async function fetchAllTasks(db: SQLite.SQLiteDatabase) {
+    try {
+      setIsLoading(true);
+      const res = await fetchAllTasksFromDb(db);
+      setTasks(res);
+    } catch (error) {
+      Alert.alert(String(error));
+    } finally {
+      setIsLoading(false);
+    }
+  }
 
   async function addTask(db: SQLite.SQLiteDatabase, newTask: Task) {
     try {
@@ -54,6 +67,17 @@ export default function TasksProvider({ children }: TasksProviderProps) {
   async function fetchTodaysTasks(db: SQLite.SQLiteDatabase) {
     try {
       const result = await fetchTodaysTasksFromDb(db);
+      if (result) {
+        setTasks(result);
+      }
+    } catch (error) {
+      Alert.alert(String(error));
+    }
+  }
+
+  async function fetchTasksForDay(db: SQLite.SQLiteDatabase, targetDate: Date) {
+    try {
+      const result = await fetchTasksForDayFromDb(db, targetDate);
       if (result) {
         setTasks(result);
       }
@@ -119,11 +143,15 @@ export default function TasksProvider({ children }: TasksProviderProps) {
   return (
     <TasksContext.Provider value={{
       tasks,
+      isLoading,
+      setIsLoading,
       addTask,
       setTasks,
+      fetchAllTasks,
       deleteTask,
       toggleStatus,
       fetchTodaysTasks,
+      fetchTasksForDay,
       editText,
       setNotifTime,
       deleteNotif,
