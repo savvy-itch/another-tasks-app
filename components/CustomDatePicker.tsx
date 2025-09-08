@@ -1,9 +1,9 @@
 import { MAIN_BG } from '@/globals';
 import { useTasks } from '@/hooks/useTasks';
-import { Task } from '@/types';
 import Entypo from '@expo/vector-icons/Entypo';
+import { useFocusEffect } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import TaskList from './TaskList';
 
@@ -15,7 +15,7 @@ const dayBtnSize = 34;
 export default function CustomDatePicker() {
   const [curDate, setCurDate] = useState<Date>(new Date());
   const [monthSlots, setMonthSlots] = useState<number[]>([]);
-  const [daysWithTasks, setDaysWithTasks] = useState<Task[]>([]);
+  const [daysWithTasks, setDaysWithTasks] = useState<Set<string>>();
   const [showModal, setShowModal] = useState<boolean>(false);
   const [targetDate, setTargetDate] = useState<Date>(trueToday);
   const [isPopulating, setIsPopulating] = useState<boolean>(false);
@@ -23,14 +23,14 @@ export default function CustomDatePicker() {
   const db = useSQLiteContext();
 
   function updateDaysWithTasks() {
-    // Keys are needed to avoid unnecessary Date objects creation and their method calls
-    const curDateKey = `${curDate.getMonth()}-${curDate.getFullYear()}`;
-    setDaysWithTasks(tasks.filter(t => {
+    const filteredTasks: Set<string> = new Set();
+    tasks.forEach(t => {
       const d = new Date(t.assignedDate);
-      const taskKey = `${d.getMonth()}-${d.getFullYear()}`;
-      return taskKey === curDateKey;
-    }));
-
+      if (d.getMonth() === curDate.getMonth() && d.getFullYear() === curDate.getFullYear()) {
+        filteredTasks.add(`${d.getDate()}-${d.getMonth()}-${d.getFullYear()}`);
+      }
+    });
+    setDaysWithTasks(filteredTasks);
   }
 
   // allow previous months as far back as 1 month before the current one (true current)
@@ -77,6 +77,12 @@ export default function CustomDatePicker() {
     setIsPopulating(false);
   }, [curDate]);
 
+  useFocusEffect(
+    useCallback(() => {
+      setCurDate(trueToday);
+    }, [])
+  );
+
   return (
     <View style={styles.calendar}>
       {/* nav bar with prev/next month button and current month */}
@@ -107,7 +113,7 @@ export default function CustomDatePicker() {
       {/* days */}
       <View style={styles.slotsWrapper}>
         {(isLoading || isPopulating)
-          ? monthSlots.map(s => <View style={styles.daySlot} key={s}><View style={styles.skeletonSlot}></View></View>)
+          ? monthSlots.map((s, i) => <View style={styles.daySlot} key={`empty-${i}`}><View style={styles.skeletonSlot}></View></View>)
           : monthSlots.map((s, i) => {
             if (s === 0) {
               return (
@@ -116,15 +122,10 @@ export default function CustomDatePicker() {
                 </View>
               );
             }
-            const dateKey = `${curDate.getMonth()}-${s}-${curDate.getFullYear()}`;
-            const day = daysWithTasks.some(t => {
-              const d = new Date(t.assignedDate);
-              const taskKey = `${d.getMonth()}-${d.getDate()}-${d.getFullYear()}`;
-              return dateKey === taskKey;
-            });
-            // console.log({daysWithTasks});
+            const dateKey = `${s}-${curDate.getMonth()}-${curDate.getFullYear()}`;
+            const day = daysWithTasks?.has(dateKey);
             return (
-              <View key={i} style={styles.daySlot}>
+              <View key={`${s}-${curDate.getMonth()}`} style={styles.daySlot}>
                 <Pressable
                   style={[styles.slotBtn, day && styles.hasTasks]}
                   onPress={() => handleDayBtnPress(new Date(curDate.getFullYear(), curDate.getMonth(), s))}
@@ -200,7 +201,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   skeletonSlot: {
-    backgroundColor: 'red',
+    backgroundColor: 'gray',
     width: dayBtnSize,
     height: dayBtnSize,
     borderRadius: '50%',
@@ -231,6 +232,9 @@ const styles = StyleSheet.create({
     color: 'hsla(0, 0%, 63%, 1.00)'
   },
   navBtn: {
-    padding: 5,
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+    borderWidth: 1,
+    borderColor: 'black'
   }
 });

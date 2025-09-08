@@ -8,8 +8,10 @@ import * as Notifications from 'expo-notifications'
 import * as SQLite from 'expo-sqlite'
 import React, { useCallback, useEffect, useState } from 'react'
 import { Alert, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import NewTaskModalContent from './NewTaskModalContent'
 import TaskElement from './TaskElement'
+import TaskSkeleton from './TaskSkeleton'
 
 const dateOptions: Intl.DateTimeFormatOptions = {
   weekday: "short",
@@ -17,15 +19,16 @@ const dateOptions: Intl.DateTimeFormatOptions = {
   day: "numeric",
 }
 
+const taskSkeletonsAmount = 5;
+
 export default function TaskList({ targetDate }: { targetDate: Date }) {
   const [addTaskMode, setAddTaskMode] = useState<boolean>(false);
   const db = SQLite.useSQLiteContext();
-  const { tasks, setTasks, fetchAllTasks, deleteExpiredTasks } = useTasks();
+  const { tasks, isLoading, setTasks, fetchAllTasks, deleteExpiredTasks } = useTasks();
   const { setOpenDropdownId } = useGeneral();
   const [allNotifs, setAllNotifs] = useState<Notifications.NotificationRequest[]>([]);
   const [targetDateTasks, setTargetDateTasks] = useState<Task[]>([]);
   const [refreshing, setRefreshing] = useState<boolean>(false);
-  // console.log({targetDate});
 
   const fetchTasksForDay = useCallback((targetDate: Date) => {
     if (tasks.length > 0) {
@@ -33,8 +36,9 @@ export default function TaskList({ targetDate }: { targetDate: Date }) {
       startMidnight.setHours(0, 0, 0, 0);
       let endMidnight = new Date(targetDate);
       endMidnight.setHours(24, 0, 0, 0);
-      const filteredTasks = tasks.filter(t => t.assignedDate >= startMidnight.getTime() && t.assignedDate < endMidnight.getTime());
-      console.log({filteredTasks});
+      const filteredTasks = tasks
+        .filter(t => t.assignedDate >= startMidnight.getTime() && t.assignedDate < endMidnight.getTime())
+        .sort((a,b) => a.isDone - b.isDone);
       setTargetDateTasks(filteredTasks);
     }
   }, [tasks]);
@@ -43,6 +47,7 @@ export default function TaskList({ targetDate }: { targetDate: Date }) {
     setRefreshing(true);
     fetchAllTasks(db);
     fetchTasksForDay(targetDate);
+    setOpenDropdownId(0)
     setRefreshing(false);
   }, [db, fetchTasksForDay, targetDate]);
 
@@ -71,8 +76,11 @@ export default function TaskList({ targetDate }: { targetDate: Date }) {
   }
 
   useEffect(() => {
-    deleteExpiredTasks(db);
-    fetchAllTasks(db);
+    async function updateData() {
+      await deleteExpiredTasks(db);
+      await fetchAllTasks(db);
+    }
+    updateData();
   }, [db]);
 
   useEffect(() => {
@@ -83,12 +91,8 @@ export default function TaskList({ targetDate }: { targetDate: Date }) {
     getAllNotifs();
   }, [tasks]);
 
-  useEffect(() => {
-    console.log({targetDateTasks});
-  }, [targetDateTasks]);
-
   return (
-    <>
+    <GestureHandlerRootView>
       <ScrollView
         style={styles.container}
         contentContainerStyle={{ flexGrow: 1 }}
@@ -103,13 +107,14 @@ export default function TaskList({ targetDate }: { targetDate: Date }) {
         <View>
           <Text style={styles.todayText}>{targetDate.toLocaleDateString('en-US', dateOptions)}</Text>
           <View style={styles.tasksContainer}>
-            {targetDateTasks.length > 0
-              ? targetDateTasks.map(t => (
-                <TaskElement key={t.id} task={t} />
-              ))
-              : <Text>No tasks for this day</Text>
+            {isLoading
+              ? Array.from({length: taskSkeletonsAmount}).map((_, i) => <TaskSkeleton key={i} />)
+              : targetDateTasks.length > 0
+                ? targetDateTasks.map(t => (
+                  <TaskElement key={t.id} task={t} />
+                ))
+                : <Text>No tasks for this day</Text>
             }
-
           </View>
 
         </View>
@@ -132,12 +137,12 @@ export default function TaskList({ targetDate }: { targetDate: Date }) {
           <Text>No scheduled notifications</Text>
         )}
 
-        <View>
+        {/* <View>
           <Text>All Tasks:</Text>
           {tasks.map(item => (
             <Text key={item.id}>{new Date(item.assignedDate).toLocaleDateString('en-US', dateOptions)} - {item.text}</Text>
           ))}
-        </View>
+        </View> */}
       </ScrollView>
       <TouchableOpacity
         style={styles.createBtn}
@@ -145,7 +150,7 @@ export default function TaskList({ targetDate }: { targetDate: Date }) {
       >
         <AntDesign style={styles.createBtnIcon} name="plus" size={28} />
       </TouchableOpacity>
-    </>
+    </GestureHandlerRootView>
   )
 }
 
@@ -156,8 +161,8 @@ const styles = StyleSheet.create({
     padding: 5,
     minHeight: '100%',
     paddingTop: 25,
-    borderWidth: 1,
-    borderColor: 'blue',
+    // borderWidth: 1,
+    // borderColor: 'blue',
   },
   headerPadding: {
     height: 40,
@@ -199,5 +204,5 @@ const styles = StyleSheet.create({
   },
   tasksContainer: {
     gap: 5,
-  }
+  },
 })

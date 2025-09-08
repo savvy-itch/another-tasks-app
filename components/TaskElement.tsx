@@ -11,8 +11,18 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useSQLiteContext } from 'expo-sqlite';
 import React, { useEffect, useRef, useState } from 'react';
-import { Alert, Pressable, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, Pressable, StyleSheet, Text, TextInput, TouchableOpacity, useWindowDimensions, View } from 'react-native';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import Animated, { Easing, runOnJS, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import TimePicker from './TimePicker';
+
+/*
+- display delete icon when task X position is in deletion zone
+- automatically translate task element beyond the screen to delete it
++ only allow swipe when edit mode is off
+*/
+
+const MAX_OFFSET_BEFORE_DELETION = 0.4;
 
 export default function TaskElement({ task }: { task: Task }) {
   const db = useSQLiteContext();
@@ -23,6 +33,9 @@ export default function TaskElement({ task }: { task: Task }) {
   const [notifModalVisible, setNotifModalVisible] = useState<boolean>(false);
   const { openDropdownId, setOpenDropdownId } = useGeneral();
   const inputRef = useRef<TextInput>(null);
+  const translateX = useSharedValue(0);
+  const deleteIconSize = useSharedValue(0);
+  const { width } = useWindowDimensions();
 
   async function submitTextEdit() {
     if (taskValue) {
@@ -59,6 +72,59 @@ export default function TaskElement({ task }: { task: Task }) {
     setOpenDropdownId(0);
   }
 
+  function handleOptionsBtnPress() {
+    if (openDropdownId === task.id) {
+      setOpenDropdownId(0);
+    } else {
+      setOpenDropdownId(task.id)
+    }
+  }
+
+  const animatedStyles = useAnimatedStyle(() => {
+    return {
+      transform: [{ translateX: translateX.value }]
+    };
+  });
+
+  const deleteIconStyle = useAnimatedStyle(() => {
+    return {
+      width: withTiming(deleteIconSize.value, {
+        duration: 300,
+        easing: Easing.linear,
+      }),
+      height: withTiming(deleteIconSize.value, {
+        duration: 300,
+        easing: Easing.linear,
+      }),
+    }
+  });
+
+  const swipe = Gesture.Pan()
+    .onStart(e => {
+      runOnJS(setOpenDropdownId)(0);
+    })
+    .onChange(e => {
+      if (!editTaskMode) {
+        // swipe left
+        if ((translateX.value + e.changeX) < 0) {
+          translateX.value += e.changeX;
+          if (translateX.value <= (-width * MAX_OFFSET_BEFORE_DELETION)) {
+            deleteIconSize.value = 30;
+          }
+        } else {
+          // swipe right
+          deleteIconSize.value = 0;
+        }
+      }
+    })
+    .onEnd(() => {
+      if (translateX.value <= (-width * MAX_OFFSET_BEFORE_DELETION)) {
+        console.log("Deleting...");
+      }
+      translateX.value = 0;
+      deleteIconSize.value = 0;
+    });
+
   useEffect(() => {
     if (editTaskMode) {
       setOpenDropdownId(0);
@@ -67,101 +133,109 @@ export default function TaskElement({ task }: { task: Task }) {
   }, [editTaskMode]);
 
   return (
-    <View style={[styles.taskWrapper, invalidInput && styles.errorBorder]} key={task.id}>
-      {editTaskMode ? (
-        <>
-          <TextInput
-            ref={inputRef}
-            style={styles.taskInput}
-            value={taskValue}
-            maxLength={MAX_TASK_LENGTH}
-            onChangeText={text => handleInputChange(text)}
-            multiline
-          />
-          <View style={styles.taskBtnWrapper}>
-            <TouchableOpacity
-              onPress={submitTextEdit}
-            >
-              <Ionicons name="checkmark" size={28} color="green" />
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={exitEditMode}
-            >
-              <Entypo name="cross" size={28} color="red" />
-            </TouchableOpacity>
-          </View>
-        </>
-      ) : (
-        <>
-          <Pressable style={styles.pressable} onPress={handleStatusToggle}>
-            <Text
-              style={task.isDone ? styles.taskDone : styles.taskText}
-              textBreakStrategy='simple'
-            >
-              {task.text}
-            </Text>
-            {/* <Text style={styles.devText}>notifId: {task.notifId}</Text>
-            <Text style={styles.devText}>notifDate: {(task.notifDate)}</Text>
-            <Text style={styles.devText}>isDone: {task.isDone ? 'done' : 'not done'}</Text> */}
-            
-            {(typeof (task.notifDate) === 'number' && !task.isDone && task.notifDate > Date.now()) && (
-              <View style={styles.notifTimeWrapper}>
-                <FontAwesome name="bell" size={16} color="gray" />
-                <Text style={styles.notifTimeText}>{padNumber(new Date(task.notifDate).getHours())}:{padNumber(new Date(task.notifDate).getMinutes())}</Text>
-              </View>
-            )}
-          </Pressable>
-
-          {/* the dropdown */}
-          <View style={styles.taskBtnWrapper}>
-            <View style={styles.dropdownContainer}>
-              <TouchableOpacity onPress={() => setOpenDropdownId(task.id)}>
-                <MaterialCommunityIcons name="dots-horizontal" size={30} color="gray" />
+    <GestureDetector gesture={swipe}>
+      <Animated.View
+        style={[styles.taskWrapper, invalidInput && styles.errorBorder, animatedStyles, task.id === openDropdownId && { zIndex: 100 }]}
+      >
+        {editTaskMode ? (
+          <>
+            <TextInput
+              ref={inputRef}
+              style={styles.taskInput}
+              value={taskValue}
+              maxLength={MAX_TASK_LENGTH}
+              onChangeText={text => handleInputChange(text)}
+              multiline
+            />
+            <View style={styles.taskBtnWrapper}>
+              <TouchableOpacity
+                onPress={submitTextEdit}
+              >
+                <Ionicons name="checkmark" size={28} color="green" />
               </TouchableOpacity>
-              {(task.id === openDropdownId) && (
-                <View style={styles.dropdown}>
-                  <TouchableOpacity
-                    style={[styles.notifBtn, styles.dropdownOption]}
-                    onPress={() => setEditTaskMode(true)}
-                    disabled={task.isDone ? true : false}
-                  >
-                    <Entypo name="edit" size={26} color="black" />
-                    <Text>Edit</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={[styles.notifBtn, styles.dropdownOption]}
-                    onPress={() => setNotifModalVisible(true)}
-                    disabled={task.isDone ? true : false}
-                  >
-                    <AntDesign name="bells" size={26} color="black" />
-                    <Text>Notification</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={[styles.notifBtn, styles.dropdownOption]}
-                    onPress={() => deleteTask(db, task.id)}
-                  >
-                    <AntDesign name="delete" size={26} color="black" />
-                    <Text>Delete</Text>
-                  </TouchableOpacity>
-                  {!task.isDone && (typeof (task.notifDate) === 'number') && task.notifDate > Date.now() && (
-                    <TouchableOpacity
-                      style={styles.dropdownOption}
-                      onPress={cancelNotif}
-                    >
-                      <Feather name="bell-off" size={26} color="black" />
-                      <Text>Delete notification</Text>
-                    </TouchableOpacity>
-                  )}
+              <TouchableOpacity
+                onPress={exitEditMode}
+              >
+                <Entypo name="cross" size={28} color="red" />
+              </TouchableOpacity>
+            </View>
+          </>
+        ) : (
+          <>
+            <Pressable style={styles.pressable} onPress={handleStatusToggle}>
+              <Text
+                style={task.isDone ? styles.taskDone : styles.taskText}
+                textBreakStrategy='simple'
+              >
+                {task.text}
+              </Text>
+              {/* <Text style={styles.devText}>notifId: {task.notifId}</Text>
+              <Text style={styles.devText}>notifDate: {(task.notifDate)}</Text>
+              <Text style={styles.devText}>isDone: {task.isDone ? 'done' : 'not done'}</Text> */}
+
+              {(typeof (task.notifDate) === 'number' && !task.isDone && task.notifDate > Date.now()) && (
+                <View style={styles.notifTimeWrapper}>
+                  <FontAwesome name="bell" size={16} color="gray" />
+                  <Text style={styles.notifTimeText}>{padNumber(new Date(task.notifDate).getHours())}:{padNumber(new Date(task.notifDate).getMinutes())}</Text>
                 </View>
               )}
-            </View>
-          </View>
+            </Pressable>
 
-          <TimePicker notifModalVisible={notifModalVisible} setNotifModalVisible={setNotifModalVisible} task={task} db={db} />
-        </>
-      )
-      }
-    </View>
+            {/* the dropdown */}
+            <View style={styles.taskBtnWrapper}>
+              <View style={styles.dropdownContainer}>
+                <TouchableOpacity onPress={handleOptionsBtnPress}>
+                  <MaterialCommunityIcons name="dots-horizontal" size={30} color="gray" />
+                </TouchableOpacity>
+                {(task.id === openDropdownId) && (
+                  <View style={styles.dropdown}>
+                    <TouchableOpacity
+                      style={[styles.notifBtn, styles.dropdownOption]}
+                      onPress={() => setEditTaskMode(true)}
+                      disabled={task.isDone ? true : false}
+                    >
+                      <Entypo name="edit" size={26} color="black" />
+                      <Text>Edit</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[styles.notifBtn, styles.dropdownOption]}
+                      onPress={() => setNotifModalVisible(true)}
+                      disabled={task.isDone ? true : false}
+                    >
+                      <AntDesign name="bells" size={26} color="black" />
+                      <Text>Notification</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[styles.notifBtn, styles.dropdownOption]}
+                      onPress={() => deleteTask(db, task.id)}
+                    >
+                      <AntDesign name="delete" size={26} color="black" />
+                      <Text>Delete</Text>
+                    </TouchableOpacity>
+                    {!task.isDone && (typeof (task.notifDate) === 'number') && task.notifDate > Date.now() && (
+                      <TouchableOpacity
+                        style={styles.dropdownOption}
+                        onPress={cancelNotif}
+                      >
+                        <Feather name="bell-off" size={26} color="black" />
+                        <Text>Delete notification</Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                )}
+              </View>
+            </View>
+
+            <Animated.View style={[styles.swipeDeleteIcon, deleteIconStyle, { width: deleteIconSize, height: deleteIconSize }]}>
+              <AntDesign name="delete" size={26} color="white" />
+            </Animated.View>
+
+            <TimePicker notifModalVisible={notifModalVisible} setNotifModalVisible={setNotifModalVisible} task={task} db={db} />
+          </>
+        )
+        }
+      </Animated.View>
+    </GestureDetector>
   )
 }
 
@@ -243,7 +317,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     right: 0,
     top: '50%',
-    zIndex: 10,
+    zIndex: 100,
     minWidth: 200,
   },
   dropdownOption: {
@@ -268,5 +342,10 @@ const styles = StyleSheet.create({
   },
   notifTimeText: {
     color: 'gray',
+  },
+  swipeDeleteIcon: {
+    backgroundColor: 'red',
+    borderTopRightRadius: 4,
+    borderBottomRightRadius: 4,
   }
 });
