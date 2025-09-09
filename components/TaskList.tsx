@@ -110,8 +110,8 @@ export default function TaskList({ targetDate }: { targetDate: Date }) {
             {isLoading
               ? Array.from({length: taskSkeletonsAmount}).map((_, i) => <TaskSkeleton key={i} />)
               : targetDateTasks.length > 0
-                ? targetDateTasks.map(t => (
-                  <TaskElement key={t.id} task={t} />
+                ? targetDateTasks.map((t, i) => (
+                  <TaskElement key={t.id} task={t} pos={i+1} />
                 ))
                 : <Text>No tasks for this day</Text>
             }

@@ -13,18 +13,12 @@ import { useSQLiteContext } from 'expo-sqlite';
 import React, { useEffect, useRef, useState } from 'react';
 import { Alert, Pressable, StyleSheet, Text, TextInput, TouchableOpacity, useWindowDimensions, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import Animated, { Easing, runOnJS, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
+import Animated, { runOnJS, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import TimePicker from './TimePicker';
 
-/*
-- display delete icon when task X position is in deletion zone
-- automatically translate task element beyond the screen to delete it
-+ only allow swipe when edit mode is off
-*/
+const MAX_OFFSET_BEFORE_DELETION = 0.3;
 
-const MAX_OFFSET_BEFORE_DELETION = 0.4;
-
-export default function TaskElement({ task }: { task: Task }) {
+export default function TaskElement({ task, pos }: { task: Task, pos: number }) {
   const db = useSQLiteContext();
   const { deleteTask, toggleStatus, editText, deleteNotif } = useTasks();
   const [editTaskMode, setEditTaskMode] = useState<boolean>(false);
@@ -90,13 +84,11 @@ export default function TaskElement({ task }: { task: Task }) {
     return {
       width: withTiming(deleteIconSize.value, {
         duration: 300,
-        easing: Easing.linear,
       }),
       height: withTiming(deleteIconSize.value, {
         duration: 300,
-        easing: Easing.linear,
       }),
-    }
+    };
   });
 
   const swipe = Gesture.Pan()
@@ -111,7 +103,7 @@ export default function TaskElement({ task }: { task: Task }) {
           if (translateX.value <= (-width * MAX_OFFSET_BEFORE_DELETION)) {
             deleteIconSize.value = 30;
           }
-        } else {
+        } else if ((translateX.value + e.changeX) > translateX.value) {
           // swipe right
           deleteIconSize.value = 0;
         }
@@ -120,8 +112,11 @@ export default function TaskElement({ task }: { task: Task }) {
     .onEnd(() => {
       if (translateX.value <= (-width * MAX_OFFSET_BEFORE_DELETION)) {
         console.log("Deleting...");
+        runOnJS(() => deleteTask(db, task.id));
+        translateX.value = withTiming(-width, { duration: 300 });
+      } else {
+        translateX.value = 0;
       }
-      translateX.value = 0;
       deleteIconSize.value = 0;
     });
 
@@ -167,7 +162,7 @@ export default function TaskElement({ task }: { task: Task }) {
                 style={task.isDone ? styles.taskDone : styles.taskText}
                 textBreakStrategy='simple'
               >
-                {task.text}
+                {pos}. {task.text}
               </Text>
               {/* <Text style={styles.devText}>notifId: {task.notifId}</Text>
               <Text style={styles.devText}>notifDate: {(task.notifDate)}</Text>
@@ -226,8 +221,8 @@ export default function TaskElement({ task }: { task: Task }) {
               </View>
             </View>
 
-            <Animated.View style={[styles.swipeDeleteIcon, deleteIconStyle, { width: deleteIconSize, height: deleteIconSize }]}>
-              <AntDesign name="delete" size={26} color="white" />
+            <Animated.View style={[styles.swipeDeleteLabel, deleteIconStyle]}>
+              <AntDesign style={styles.swipeDeleteIcon} name="delete" size={26} color="white" />
             </Animated.View>
 
             <TimePicker notifModalVisible={notifModalVisible} setNotifModalVisible={setNotifModalVisible} task={task} db={db} />
@@ -343,9 +338,12 @@ const styles = StyleSheet.create({
   notifTimeText: {
     color: 'gray',
   },
-  swipeDeleteIcon: {
+  swipeDeleteLabel: {
     backgroundColor: 'red',
-    borderTopRightRadius: 4,
-    borderBottomRightRadius: 4,
-  }
+    borderRadius: 4,
+  },
+  swipeDeleteIcon: {
+    marginHorizontal: 'auto',
+    marginVertical: 0,
+  },
 });
