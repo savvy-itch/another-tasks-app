@@ -1,4 +1,5 @@
 import { MAIN_BG } from '@/globals';
+import { useGeneral } from '@/hooks/useGeneral';
 import { useTasks } from '@/hooks/useTasks';
 import Entypo from '@expo/vector-icons/Entypo';
 import { useFocusEffect } from 'expo-router';
@@ -20,6 +21,7 @@ export default function CustomDatePicker() {
   const [targetDate, setTargetDate] = useState<Date>(trueToday);
   const [isPopulating, setIsPopulating] = useState<boolean>(false);
   const { tasks, isLoading } = useTasks();
+  const { fontSize } = useGeneral();
   const db = useSQLiteContext();
 
   function updateDaysWithTasks() {
@@ -92,16 +94,16 @@ export default function CustomDatePicker() {
           disabled={curDate.getFullYear() > trueToday.getFullYear() ? false : !((curDate.getMonth() + 1) >= trueToday.getMonth())}
           style={styles.navBtn}
         >
-          <Text style={[styles.navText, (curDate.getFullYear() < trueToday.getFullYear() ||
+          <Text style={[styles.navText, { fontSize: 17 * fontSize }, (curDate.getFullYear() < trueToday.getFullYear() ||
             (curDate.getFullYear() === trueToday.getFullYear() &&
               curDate.getMonth() < trueToday.getMonth())) && styles.disabledArrow]}>&lt;</Text>
         </Pressable>
-        <Text style={styles.navText}>{Intl.DateTimeFormat("en-US", { month: "long" }).format(curDate)} {curDate.getFullYear()}</Text>
+        <Text style={[styles.navText, { fontSize: 17 * fontSize }]}>{Intl.DateTimeFormat("en-US", { month: "long" }).format(curDate)} {curDate.getFullYear()}</Text>
         <Pressable
           onPress={getNextMonth}
           style={styles.navBtn}
         >
-          <Text style={styles.navText}>&gt;</Text>
+          <Text style={[styles.navText, { fontSize: 17 * fontSize }]}>&gt;</Text>
         </Pressable>
       </View>
 
@@ -210,7 +212,6 @@ const styles = StyleSheet.create({
   },
   navText: {
     fontWeight: 'bold',
-    fontSize: 18,
   },
   slotBtn: {
     width: dayBtnSize,
@@ -234,7 +235,7 @@ const styles = StyleSheet.create({
   navBtn: {
     paddingVertical: 5,
     paddingHorizontal: 10,
-    borderWidth: 1,
-    borderColor: 'black'
+    // borderWidth: 1,
+    // borderColor: 'black'
   }
 });

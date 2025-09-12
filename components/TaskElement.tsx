@@ -10,8 +10,8 @@ import FontAwesome from '@expo/vector-icons/FontAwesome';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useSQLiteContext } from 'expo-sqlite';
-import React, { useEffect, useRef, useState } from 'react';
-import { Alert, Pressable, StyleSheet, Text, TextInput, TouchableOpacity, useWindowDimensions, View } from 'react-native';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, useWindowDimensions, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, { runOnJS, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import TimePicker from './TimePicker';
@@ -25,7 +25,7 @@ export default function TaskElement({ task, pos }: { task: Task, pos: number }) 
   const [taskValue, setTaskValue] = useState<string>(task.text);
   const [invalidInput, setInvalidInput] = useState<boolean>(false);
   const [notifModalVisible, setNotifModalVisible] = useState<boolean>(false);
-  const { openDropdownId, setOpenDropdownId } = useGeneral();
+  const { openDropdownId, fontSize, setOpenDropdownId } = useGeneral();
   const inputRef = useRef<TextInput>(null);
   const translateX = useSharedValue(0);
   const deleteIconSize = useSharedValue(0);
@@ -91,6 +91,18 @@ export default function TaskElement({ task, pos }: { task: Task, pos: number }) 
     };
   });
 
+  // runOnJS needs closure for db argument
+  const handleDeleteFromGesture = useCallback((id: number) => {
+    deleteTask(db, id);
+  }, [db]);
+
+  const tap = Gesture.Tap()
+    .numberOfTaps(1)
+    .onEnd(() => {
+      console.log('tap');
+      runOnJS(handleStatusToggle)();
+    });
+
   const swipe = Gesture.Pan()
     .onStart(e => {
       runOnJS(setOpenDropdownId)(0);
@@ -112,7 +124,7 @@ export default function TaskElement({ task, pos }: { task: Task, pos: number }) 
     .onEnd(() => {
       if (translateX.value <= (-width * MAX_OFFSET_BEFORE_DELETION)) {
         console.log("Deleting...");
-        runOnJS(() => deleteTask(db, task.id));
+        runOnJS(handleDeleteFromGesture)(task.id);
         translateX.value = withTiming(-width, { duration: 300 });
       } else {
         translateX.value = 0;
@@ -136,7 +148,7 @@ export default function TaskElement({ task, pos }: { task: Task, pos: number }) 
           <>
             <TextInput
               ref={inputRef}
-              style={styles.taskInput}
+              style={[styles.taskInput, { fontSize: 20 * fontSize }]}
               value={taskValue}
               maxLength={MAX_TASK_LENGTH}
               onChangeText={text => handleInputChange(text)}
@@ -157,24 +169,26 @@ export default function TaskElement({ task, pos }: { task: Task, pos: number }) 
           </>
         ) : (
           <>
-            <Pressable style={styles.pressable} onPress={handleStatusToggle}>
-              <Text
-                style={task.isDone ? styles.taskDone : styles.taskText}
-                textBreakStrategy='simple'
-              >
-                {pos}. {task.text}
-              </Text>
-              {/* <Text style={styles.devText}>notifId: {task.notifId}</Text>
-              <Text style={styles.devText}>notifDate: {(task.notifDate)}</Text>
-              <Text style={styles.devText}>isDone: {task.isDone ? 'done' : 'not done'}</Text> */}
+            <GestureDetector gesture={tap}>
+              <Animated.View style={styles.pressable}>
+                <Text
+                  style={[...(task.isDone ? [styles.taskDone] : []), { fontSize: 18 * fontSize }]}
+                  textBreakStrategy='simple'
+                >
+                  {pos}. {task.text}
+                </Text>
+                {/* <Text style={styles.devText}>notifId: {task.notifId}</Text>
+                <Text style={styles.devText}>notifDate: {(task.notifDate)}</Text>
+                <Text style={styles.devText}>isDone: {task.isDone ? 'done' : 'not done'}</Text> */}
 
-              {(typeof (task.notifDate) === 'number' && !task.isDone && task.notifDate > Date.now()) && (
-                <View style={styles.notifTimeWrapper}>
-                  <FontAwesome name="bell" size={16} color="gray" />
-                  <Text style={styles.notifTimeText}>{padNumber(new Date(task.notifDate).getHours())}:{padNumber(new Date(task.notifDate).getMinutes())}</Text>
-                </View>
-              )}
-            </Pressable>
+                {(typeof (task.notifDate) === 'number' && !task.isDone && task.notifDate > Date.now()) && (
+                  <View style={styles.notifTimeWrapper}>
+                    <FontAwesome name="bell" size={16} color="gray" />
+                    <Text style={[styles.notifTimeText, { fontSize: 14 * fontSize }]}>{padNumber(new Date(task.notifDate).getHours())}:{padNumber(new Date(task.notifDate).getMinutes())}</Text>
+                  </View>
+                )}
+              </Animated.View>
+            </GestureDetector>
 
             {/* the dropdown */}
             <View style={styles.taskBtnWrapper}>
@@ -190,7 +204,7 @@ export default function TaskElement({ task, pos }: { task: Task, pos: number }) 
                       disabled={task.isDone ? true : false}
                     >
                       <Entypo name="edit" size={26} color="black" />
-                      <Text>Edit</Text>
+                      <Text style={{ fontSize: 14 * fontSize }}>Edit</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                       style={[styles.notifBtn, styles.dropdownOption]}
@@ -198,14 +212,14 @@ export default function TaskElement({ task, pos }: { task: Task, pos: number }) 
                       disabled={task.isDone ? true : false}
                     >
                       <AntDesign name="bells" size={26} color="black" />
-                      <Text>Notification</Text>
+                      <Text style={{ fontSize: 14 * fontSize }}>Notification</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                       style={[styles.notifBtn, styles.dropdownOption]}
                       onPress={() => deleteTask(db, task.id)}
                     >
                       <AntDesign name="delete" size={26} color="black" />
-                      <Text>Delete</Text>
+                      <Text style={{ fontSize: 14 * fontSize }}>Delete</Text>
                     </TouchableOpacity>
                     {!task.isDone && (typeof (task.notifDate) === 'number') && task.notifDate > Date.now() && (
                       <TouchableOpacity
@@ -213,7 +227,7 @@ export default function TaskElement({ task, pos }: { task: Task, pos: number }) 
                         onPress={cancelNotif}
                       >
                         <Feather name="bell-off" size={26} color="black" />
-                        <Text>Delete notification</Text>
+                        <Text style={{ fontSize: 14 * fontSize }}>Delete notification</Text>
                       </TouchableOpacity>
                     )}
                   </View>
@@ -266,11 +280,7 @@ const styles = StyleSheet.create({
     width: '100%',
     minHeight: 'auto',
   },
-  taskText: {
-    fontSize: 20,
-  },
   taskDone: {
-    fontSize: 20,
     textDecorationLine: 'line-through',
     color: 'gray',
   },
@@ -281,7 +291,6 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   taskInput: {
-    fontSize: 20,
     flexShrink: 1,
     width: '100%',
     borderColor: 'blue',

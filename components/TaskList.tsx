@@ -25,7 +25,7 @@ export default function TaskList({ targetDate }: { targetDate: Date }) {
   const [addTaskMode, setAddTaskMode] = useState<boolean>(false);
   const db = SQLite.useSQLiteContext();
   const { tasks, isLoading, setTasks, fetchAllTasks, deleteExpiredTasks } = useTasks();
-  const { setOpenDropdownId } = useGeneral();
+  const { fontSize, setOpenDropdownId } = useGeneral();
   const [allNotifs, setAllNotifs] = useState<Notifications.NotificationRequest[]>([]);
   const [targetDateTasks, setTargetDateTasks] = useState<Task[]>([]);
   const [refreshing, setRefreshing] = useState<boolean>(false);
@@ -105,7 +105,7 @@ export default function TaskList({ targetDate }: { targetDate: Date }) {
       >
         <Pressable style={[StyleSheet.absoluteFillObject, styles.overlay]} onPress={() => setOpenDropdownId(0)} />
         <View>
-          <Text style={styles.todayText}>{targetDate.toLocaleDateString('en-US', dateOptions)}</Text>
+          <Text style={[styles.todayText, { fontSize: 20 * fontSize }]}>{targetDate.toLocaleDateString('en-US', dateOptions)}</Text>
           <View style={styles.tasksContainer}>
             {isLoading
               ? Array.from({length: taskSkeletonsAmount}).map((_, i) => <TaskSkeleton key={i} />)
@@ -186,7 +186,6 @@ const styles = StyleSheet.create({
     color: 'white',
   },
   todayText: {
-    fontSize: 20,
     fontWeight: 'bold',
     marginBottom: 6,
   },

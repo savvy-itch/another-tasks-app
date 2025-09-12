@@ -34,7 +34,9 @@ interface TasksContextType {
 
 interface GeneralContextType {
   openDropdownId: number,
+  fontSize: number,
   setOpenDropdownId: React.Dispatch<React.SetStateAction<number>>,
+  setFontSize: React.Dispatch<React.SetStateAction<number>>,
 }
 
 export {

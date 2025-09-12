@@ -1,4 +1,5 @@
 import { MAX_TASK_LENGTH } from '@/globals';
+import { useGeneral } from '@/hooks/useGeneral';
 import { useTasks } from '@/hooks/useTasks';
 import { Bool, Task } from '@/types';
 import * as SQLite from 'expo-sqlite';
@@ -15,6 +16,7 @@ interface TaskModalProps {
 export default function NewTaskModalContent({ db, addTaskMode, assignedDate, setAddTaskMode }: TaskModalProps) {
   const [taskValue, setTaskValue] = useState<string>('');
   const { addTask } = useTasks();
+  const { fontSize } = useGeneral();
   const newTaskRef = useRef(null);
 
   async function onSubmit() {
@@ -44,7 +46,7 @@ export default function NewTaskModalContent({ db, addTaskMode, assignedDate, set
       <View style={styles.centeredView}>
         <View style={styles.taskInputWrapper}>
           <TextInput
-            style={styles.taskInput}
+            style={[styles.taskInput, { fontSize: 22 * fontSize }]}
             ref={newTaskRef}
             onChangeText={setTaskValue}
             value={taskValue}
@@ -56,13 +58,13 @@ export default function NewTaskModalContent({ db, addTaskMode, assignedDate, set
               style={[styles.saveTaskBtn, styles.btn]}
               onPress={onSubmit}
             >
-              <Text style={styles.btnText}>Save</Text>
+              <Text style={[styles.btnText, { fontSize: 20 * fontSize }]}>Save</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.cancelTaskBtn, styles.btn]}
               onPress={onCancel}
             >
-              <Text style={styles.btnText}>Cancel</Text>
+              <Text style={[styles.btnText, { fontSize: 20 * fontSize }]}>Cancel</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -96,13 +98,12 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     padding: 6,
     borderRadius: 3,
-    fontSize: 22,
     flexShrink: 1,
     width: '100%',
   },
   btnWrapper: {
     flexDirection: 'row',
-    gap: 12
+    gap: 15
   },
   btn: {
     padding: 6,
@@ -115,7 +116,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'red',
   },
   btnText: {
-    fontSize: 20,
     color: 'white',
   }
 })

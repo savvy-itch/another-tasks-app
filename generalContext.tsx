@@ -9,9 +9,15 @@ interface GeneralProviderProps {
 
 export default function GeneralProvider({ children }: GeneralProviderProps) {
   const [openDropdownId, setOpenDropdownId] = useState<number>(0);
+  const [fontSize, setFontSize] = useState<number>(1);
 
   return (
-    <GeneralContext.Provider value={{openDropdownId, setOpenDropdownId}}>
+    <GeneralContext.Provider value={{
+      openDropdownId, 
+      setOpenDropdownId, 
+      fontSize, 
+      setFontSize
+    }}>
       {children}
     </GeneralContext.Provider>
   )
