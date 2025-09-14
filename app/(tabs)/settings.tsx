@@ -17,7 +17,7 @@ export default function Settings() {
 
   useEffect(() => {
     fetchAppPrefs()
-  }, []);
+  }, [fetchAppPrefs]);
 
   return (
     <ScrollView contentContainerStyle={styles.mainContainer}>

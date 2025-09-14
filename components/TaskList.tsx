@@ -49,7 +49,7 @@ export default function TaskList({ targetDate }: { targetDate: Date }) {
     fetchTasksForDay(targetDate);
     setOpenDropdownId(0)
     setRefreshing(false);
-  }, [db, fetchTasksForDay, targetDate]);
+  }, [db, fetchTasksForDay, targetDate, fetchAllTasks, setOpenDropdownId]);
 
   function onPress() {
     setAddTaskMode(true);
@@ -93,7 +93,7 @@ export default function TaskList({ targetDate }: { targetDate: Date }) {
 
   useEffect(() => {
     fetchAppPrefs();
-  }, []);
+  }, [fetchAppPrefs]);
 
   return (
     <GestureHandlerRootView>

@@ -5,13 +5,13 @@ import Entypo from '@expo/vector-icons/Entypo';
 import { useFocusEffect } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import React, { useCallback, useEffect, useState } from 'react';
-import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import { FlatList, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import TaskList from './TaskList';
+import Weekdays from './Weekdays';
 
-const weekdays: string[] = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const totalSlots = 35;
 const trueToday = new Date();
-const dayBtnSize = 34;
+const dayBtnSize = 36;
 
 export default function CustomDatePicker() {
   const [curDate, setCurDate] = useState<Date>(new Date());
@@ -23,17 +23,6 @@ export default function CustomDatePicker() {
   const { tasks, isLoading } = useTasks();
   const { fontSize, fetchAppPrefs } = useGeneral();
   const db = useSQLiteContext();
-
-  function updateDaysWithTasks() {
-    const filteredTasks: Set<string> = new Set();
-    tasks.forEach(t => {
-      const d = new Date(t.assignedDate);
-      if (d.getMonth() === curDate.getMonth() && d.getFullYear() === curDate.getFullYear()) {
-        filteredTasks.add(`${d.getDate()}-${d.getMonth()}-${d.getFullYear()}`);
-      }
-    });
-    setDaysWithTasks(filteredTasks);
-  }
 
   // allow previous months as far back as 1 month before the current one (true current)
   function getPrevMonth() {
@@ -48,34 +37,46 @@ export default function CustomDatePicker() {
     setCurDate(next);
   }
 
-  function populateMonthSlots() {
-    const arr: number[] = [];
-    const dayOffset = new Date(curDate.getFullYear(), curDate.getMonth(), 1).getDay();
-    let amountOfDaysInMonth = new Date(curDate.getFullYear(), curDate.getMonth() + 1, 0).getDate();
-    for (let i = 0; i < totalSlots; i++) {
-      // set weekdays that don't belong to current month to 0
-      if (((i + 1) < dayOffset) || amountOfDaysInMonth === 0) {
-        arr.push(0);
-      } else {
-        arr.push(i - dayOffset + 2);
-        amountOfDaysInMonth--;
-      }
-    }
-    setMonthSlots(arr);
-  }
-
   function handleDayBtnPress(assignedDate: Date) {
     setTargetDate(assignedDate);
     setShowModal(true);
   }
 
   useEffect(() => {
+    function updateDaysWithTasks() {
+      const filteredTasks: Set<string> = new Set();
+      tasks.forEach(t => {
+        const d = new Date(t.assignedDate);
+        if (d.getMonth() === curDate.getMonth() && d.getFullYear() === curDate.getFullYear()) {
+          filteredTasks.add(`${d.getDate()}-${d.getMonth()}-${d.getFullYear()}`);
+        }
+      });
+      setDaysWithTasks(filteredTasks);
+    }
+    
     updateDaysWithTasks();
   }, [db, tasks, curDate]);
 
   useEffect(() => {
     setIsPopulating(true);
-    populateMonthSlots()
+
+    function populateMonthSlots() {
+      const arr: number[] = [];
+      const dayOffset = new Date(curDate.getFullYear(), curDate.getMonth(), 1).getDay();
+      let amountOfDaysInMonth = new Date(curDate.getFullYear(), curDate.getMonth() + 1, 0).getDate();
+      for (let i = 0; i < totalSlots; i++) {
+        // set weekdays that don't belong to current month to 0
+        if (((i + 1) < dayOffset) || amountOfDaysInMonth === 0) {
+          arr.push(0);
+        } else {
+          arr.push(i - dayOffset + 2);
+          amountOfDaysInMonth--;
+        }
+      }
+      setMonthSlots(arr);
+    }
+
+    populateMonthSlots();
     setIsPopulating(false);
   }, [curDate]);
 
@@ -87,7 +88,7 @@ export default function CustomDatePicker() {
 
   useEffect(() => {
     fetchAppPrefs();
-  }, []);
+  }, [fetchAppPrefs]);
 
   return (
     <View style={styles.calendar}>
@@ -112,62 +113,74 @@ export default function CustomDatePicker() {
       </View>
 
       {/* list of weekdays */}
-      <View style={styles.weekdays}>
-        {weekdays.map(d => <Text key={d}>{d}</Text>)}
-      </View>
+      <Weekdays />
 
       {/* days */}
-      <View style={styles.slotsWrapper}>
-        {(isLoading || isPopulating)
-          ? monthSlots.map((s, i) => <View style={styles.daySlot} key={`empty-${i}`}><View style={styles.skeletonSlot}></View></View>)
-          : monthSlots.map((s, i) => {
-            if (s === 0) {
+      {(isLoading || isPopulating)
+        ? (
+          <FlatList
+            data={monthSlots}
+            renderItem={() => <View style={styles.daySlot}><View style={styles.skeletonSlot}></View></View>}
+            keyExtractor={index => `empty-${index}`}
+            numColumns={7}
+            columnWrapperStyle={{ justifyContent: 'space-between' }}
+            contentContainerStyle={styles.slotsWrapper}
+          />
+        ) : (
+          <FlatList
+            data={monthSlots}
+            renderItem={({ item, index }) => {
+              if (item === 0) {
+                return (
+                  <View key={index} style={styles.daySlot}>
+                    <View style={styles.emptySlot}></View>
+                  </View>
+                );
+              }
+              const dateKey = `${item}-${curDate.getMonth()}-${curDate.getFullYear()}`;
+              const day = daysWithTasks?.has(dateKey);
               return (
-                <View key={i} style={styles.daySlot}>
-                  <View style={styles.emptySlot}></View>
-                </View>
-              );
-            }
-            const dateKey = `${s}-${curDate.getMonth()}-${curDate.getFullYear()}`;
-            const day = daysWithTasks?.has(dateKey);
-            return (
-              <View key={`${s}-${curDate.getMonth()}`} style={styles.daySlot}>
-                <Pressable
-                  style={[styles.slotBtn, day && styles.hasTasks]}
-                  onPress={() => handleDayBtnPress(new Date(curDate.getFullYear(), curDate.getMonth(), s))}
-                >
-                  <Text
-                    style={trueToday.getDate() === s
-                      && trueToday.getFullYear() === curDate.getFullYear()
-                      && trueToday.getMonth() === curDate.getMonth() && styles.today}
+                <View style={styles.daySlot}>
+                  <Pressable
+                    style={[styles.slotBtn, day && styles.hasTasks]}
+                    onPress={() => handleDayBtnPress(new Date(curDate.getFullYear(), curDate.getMonth(), item))}
                   >
-                    {s}
-                  </Text>
-                </Pressable>
-              </View>
-            )
-          }
-          )}
+                    <Text
+                      style={[styles.slotBtnText, trueToday.getDate() === item
+                        && trueToday.getFullYear() === curDate.getFullYear()
+                        && trueToday.getMonth() === curDate.getMonth() && styles.today]}
+                    >
+                      {item}
+                    </Text>
+                  </Pressable>
+                </View>
+              )
+            }}
+            keyExtractor={item => `${item}-${curDate.getMonth()}`}
+            numColumns={7}
+            columnWrapperStyle={{ justifyContent: 'space-between', gap: 5 }}
+            contentContainerStyle={styles.slotsWrapper}
+          />
+        )}
 
-        <Modal
-          animationType='slide'
-          visible={showModal}
-          onRequestClose={() => setShowModal(false)}
-          backdropColor={MAIN_BG}
-        >
-          <Pressable onPress={() => setShowModal(false)}>
-            <Entypo name="cross" size={30} color="#000000" />
-          </Pressable>
-          <TaskList targetDate={targetDate} />
-        </Modal>
-      </View>
-    </View>
+      <Modal
+        animationType='slide'
+        visible={showModal}
+        onRequestClose={() => setShowModal(false)}
+        backdropColor={MAIN_BG}
+      >
+        <Pressable onPress={() => setShowModal(false)}>
+          <Entypo name="cross" size={30} color="#000000" />
+        </Pressable>
+        <TaskList targetDate={targetDate} />
+      </Modal>
+    </View >
   )
 }
 
 const styles = StyleSheet.create({
   calendar: {
-    width: '80%',
+    width: '85%',
     padding: 2,
   },
   nav: {
@@ -178,22 +191,10 @@ const styles = StyleSheet.create({
     padding: 5,
     backgroundColor: '#DCDCDC',
   },
-  weekdays: {
-    display: 'flex',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    padding: 3,
-  },
   slotsWrapper: {
-    display: 'flex',
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
     gap: 5
   },
   daySlot: {
-    width: '11%',
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
@@ -226,6 +227,9 @@ const styles = StyleSheet.create({
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  slotBtnText: {
+    fontSize: 16,
   },
   today: {
     fontWeight: 'bold',

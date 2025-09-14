@@ -31,7 +31,7 @@ const styles = StyleSheet.create({
   radioIndicator: {
     width: INDICATOR_SIZE,
     height: INDICATOR_SIZE,
-    borderWidth: 1,
+    borderWidth: 2,
     borderColor: 'black',
     borderRadius: '50%',
     display: 'flex',
@@ -39,8 +39,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   selected: {
-    width: INDICATOR_SIZE * 0.5,
-    height: INDICATOR_SIZE * 0.5,
+    width: INDICATOR_SIZE * 0.4,
+    height: INDICATOR_SIZE * 0.4,
     backgroundColor: 'blue',
     borderRadius: '50%',
   }

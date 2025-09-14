@@ -94,7 +94,7 @@ export default function TaskElement({ task, pos }: { task: Task, pos: number }) 
   // runOnJS needs closure for db argument
   const handleDeleteFromGesture = useCallback((id: number) => {
     deleteTask(db, id);
-  }, [db]);
+  }, [db, deleteTask]);
 
   const tap = Gesture.Tap()
     .numberOfTaps(1)
