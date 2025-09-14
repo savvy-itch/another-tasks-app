@@ -4,7 +4,7 @@ import { useGeneral } from '@/hooks/useGeneral';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import * as Application from 'expo-application';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
 const fontSizeCoef = {
@@ -13,7 +13,11 @@ const fontSizeCoef = {
 }
 
 export default function Settings() {
-  const { fontSize } = useGeneral();
+  const { fontSize, fetchAppPrefs } = useGeneral();
+
+  useEffect(() => {
+    fetchAppPrefs()
+  }, []);
 
   return (
     <ScrollView contentContainerStyle={styles.mainContainer}>

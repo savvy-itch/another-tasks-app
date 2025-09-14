@@ -1,23 +1,40 @@
 import * as SQLite from 'expo-sqlite';
+import Storage from 'expo-sqlite/kv-store';
 import { Alert } from 'react-native';
 import { Task } from "./types";
+
+const TASKS_TABLE_NAME = "tasks";
+
+export async function setFontSizePrefInStorage(val: number) {
+  try {
+    await Storage.setItem('fontSize', JSON.stringify({ fontSize: val }));
+  } catch (error) {
+    Alert.alert(String(error));
+    console.error(error);
+  }
+}
+
+export async function setThemePrefInStorage(theme: string) {
+  try {
+    await Storage.setItem('theme', JSON.stringify({ theme }));
+  } catch (error) {
+    Alert.alert(String(error));
+    console.error(error);
+  }
+}
 
 export async function migrateDb(db: SQLite.SQLiteDatabase) {
   try {
     const DB_VERSION = 2;
-    // const result = await db?.getFirstAsync<{ user_version: number }>('PRAGMA user_version');
-    // let currentDbVersion = result?.user_version ?? 0;
 
     const tableExists = await db.getFirstAsync<{ name: string }>(
-      "SELECT name FROM sqlite_master WHERE type='table' AND name='tasks';"
+      `SELECT name FROM sqlite_master WHERE type='table' AND name='${TASKS_TABLE_NAME}';`
     );
-
-    // if (currentDbVersion >= DB_VERSION) return;
 
     if (!tableExists) {
       await db.execAsync(`
         PRAGMA journal_mode = 'wal';
-        CREATE TABLE tasks (
+        CREATE TABLE ${TASKS_TABLE_NAME} (
           id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, 
           text TEXT NOT NULL, 
           created INTEGER NOT NULL,
@@ -42,7 +59,7 @@ export async function fetchTodaysTasksFromDb(db: SQLite.SQLiteDatabase) {
     startMidnight.setHours(0, 0, 0, 0);
     let endMidnight = new Date(curDate);
     endMidnight.setHours(24, 0, 0, 0);
-    const result = await db.getAllAsync<Task>('SELECT * FROM tasks WHERE assignedDate >= ? AND assignedDate < ? ORDER BY assignedDate', startMidnight.getTime(), endMidnight.getTime());
+    const result = await db.getAllAsync<Task>(`SELECT * FROM ${TASKS_TABLE_NAME} WHERE assignedDate >= ? AND assignedDate < ? ORDER BY assignedDate`, startMidnight.getTime(), endMidnight.getTime());
     return result;
   } catch (error) {
     console.error(error);
@@ -56,7 +73,7 @@ export async function fetchTasksForDayFromDb(db: SQLite.SQLiteDatabase, targetDa
     startMidnight.setHours(0, 0, 0, 0);
     let endMidnight = new Date(targetDate);
     endMidnight.setHours(24, 0, 0, 0);
-    const result = await db.getAllAsync<Task>('SELECT * FROM tasks WHERE assignedDate >= ? AND assignedDate < ? ORDER BY assignedDate', startMidnight.getTime(), endMidnight.getTime());
+    const result = await db.getAllAsync<Task>(`SELECT * FROM ${TASKS_TABLE_NAME} WHERE assignedDate >= ? AND assignedDate < ? ORDER BY assignedDate`, startMidnight.getTime(), endMidnight.getTime());
     return result;
   } catch (error) {
     console.error(error);
@@ -66,7 +83,7 @@ export async function fetchTasksForDayFromDb(db: SQLite.SQLiteDatabase, targetDa
 
 export async function addTaskToDb(db: SQLite.SQLiteDatabase, task: Task) {
   try {
-    await db.runAsync('INSERT INTO tasks (text, created, assignedDate) VALUES (?, ?, ?)', task.text, task.created, task.assignedDate);
+    await db.runAsync(`INSERT INTO ${TASKS_TABLE_NAME} (text, created, assignedDate) VALUES (?, ?, ?)`, task.text, task.created, task.assignedDate);
   } catch (error) {
     console.error(error);
     throw error;

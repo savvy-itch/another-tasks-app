@@ -36,7 +36,8 @@ interface GeneralContextType {
   openDropdownId: number,
   fontSize: number,
   setOpenDropdownId: React.Dispatch<React.SetStateAction<number>>,
-  setFontSize: React.Dispatch<React.SetStateAction<number>>,
+  setFontSizePref: (val: number) => void,
+  fetchAppPrefs: () => void
 }
 
 export {

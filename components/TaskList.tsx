@@ -25,7 +25,7 @@ export default function TaskList({ targetDate }: { targetDate: Date }) {
   const [addTaskMode, setAddTaskMode] = useState<boolean>(false);
   const db = SQLite.useSQLiteContext();
   const { tasks, isLoading, setTasks, fetchAllTasks, deleteExpiredTasks } = useTasks();
-  const { fontSize, setOpenDropdownId } = useGeneral();
+  const { fontSize, fetchAppPrefs, setOpenDropdownId } = useGeneral();
   const [allNotifs, setAllNotifs] = useState<Notifications.NotificationRequest[]>([]);
   const [targetDateTasks, setTargetDateTasks] = useState<Task[]>([]);
   const [refreshing, setRefreshing] = useState<boolean>(false);
@@ -90,6 +90,10 @@ export default function TaskList({ targetDate }: { targetDate: Date }) {
   useEffect(() => {
     getAllNotifs();
   }, [tasks]);
+
+  useEffect(() => {
+    fetchAppPrefs();
+  }, []);
 
   return (
     <GestureHandlerRootView>

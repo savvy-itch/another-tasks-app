@@ -6,12 +6,12 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 const INDICATOR_SIZE = 17;
 
 export default function RadioButton({ text, val }: { text: string, val: number }) {
-  const { fontSize, setFontSize } = useGeneral();
+  const { fontSize, setFontSizePref } = useGeneral();
 
   return (
     <Pressable
       style={styles.radio}
-      onPress={() => setFontSize(val)}
+      onPress={() => setFontSizePref(val)}
     >
       <View style={styles.radioIndicator}>
         <View style={fontSize === val && styles.selected} />

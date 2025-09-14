@@ -21,7 +21,7 @@ export default function CustomDatePicker() {
   const [targetDate, setTargetDate] = useState<Date>(trueToday);
   const [isPopulating, setIsPopulating] = useState<boolean>(false);
   const { tasks, isLoading } = useTasks();
-  const { fontSize } = useGeneral();
+  const { fontSize, fetchAppPrefs } = useGeneral();
   const db = useSQLiteContext();
 
   function updateDaysWithTasks() {
@@ -84,6 +84,10 @@ export default function CustomDatePicker() {
       setCurDate(trueToday);
     }, [])
   );
+
+  useEffect(() => {
+    fetchAppPrefs();
+  }, []);
 
   return (
     <View style={styles.calendar}>
