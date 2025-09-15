@@ -1,5 +1,5 @@
 import { clearDB } from '@/db'
-import { MAIN_BG } from '@/globals'
+import { allThemes } from '@/globals'
 import { useGeneral } from '@/hooks/useGeneral'
 import { useTasks } from '@/hooks/useTasks'
 import { Task } from '@/types'
@@ -25,7 +25,7 @@ export default function TaskList({ targetDate }: { targetDate: Date }) {
   const [addTaskMode, setAddTaskMode] = useState<boolean>(false);
   const db = SQLite.useSQLiteContext();
   const { tasks, isLoading, setTasks, fetchAllTasks, deleteExpiredTasks } = useTasks();
-  const { fontSize, fetchAppPrefs, setOpenDropdownId } = useGeneral();
+  const { fontSize, curTheme, fetchAppPrefs, setOpenDropdownId } = useGeneral();
   const [allNotifs, setAllNotifs] = useState<Notifications.NotificationRequest[]>([]);
   const [targetDateTasks, setTargetDateTasks] = useState<Task[]>([]);
   const [refreshing, setRefreshing] = useState<boolean>(false);
@@ -98,7 +98,7 @@ export default function TaskList({ targetDate }: { targetDate: Date }) {
   return (
     <GestureHandlerRootView>
       <ScrollView
-        style={styles.container}
+        style={[styles.container, { backgroundColor: allThemes[curTheme].mainBg }]}
         contentContainerStyle={{ flexGrow: 1 }}
         refreshControl={
           <RefreshControl
@@ -109,7 +109,7 @@ export default function TaskList({ targetDate }: { targetDate: Date }) {
       >
         <Pressable style={[StyleSheet.absoluteFillObject, styles.overlay]} onPress={() => setOpenDropdownId(0)} />
         <View>
-          <Text style={[styles.todayText, { fontSize: 20 * fontSize }]}>{targetDate.toLocaleDateString('en-US', dateOptions)}</Text>
+          <Text style={[styles.todayText, { fontSize: 20 * fontSize, color: allThemes[curTheme].textColor }]}>{targetDate.toLocaleDateString('en-US', dateOptions)}</Text>
           <View style={styles.tasksContainer}>
             {isLoading
               ? Array.from({length: taskSkeletonsAmount}).map((_, i) => <TaskSkeleton key={i} />)
@@ -117,7 +117,7 @@ export default function TaskList({ targetDate }: { targetDate: Date }) {
                 ? targetDateTasks.map((t, i) => (
                   <TaskElement key={t.id} task={t} pos={i+1} />
                 ))
-                : <Text>No tasks for this day</Text>
+                : <Text style={{ color: allThemes[curTheme].textColor }}>No tasks for this day</Text>
             }
           </View>
 
@@ -160,7 +160,7 @@ export default function TaskList({ targetDate }: { targetDate: Date }) {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: MAIN_BG,
+    // backgroundColor: MAIN_BG,
     gap: 6,
     padding: 5,
     minHeight: '100%',
@@ -201,8 +201,8 @@ const styles = StyleSheet.create({
     marginTop: 8
   },
   overlay: {
-    borderWidth: 1,
-    borderColor: 'red',
+    // borderWidth: 1,
+    // borderColor: 'red',
     minHeight: '100%',
   },
   tasksContainer: {

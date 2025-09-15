@@ -35,13 +35,23 @@ interface TasksContextType {
 interface GeneralContextType {
   openDropdownId: number,
   fontSize: number,
+  curTheme: themes,
   setOpenDropdownId: React.Dispatch<React.SetStateAction<number>>,
   setFontSizePref: (val: number) => void,
-  fetchAppPrefs: () => void
+  fetchAppPrefs: () => void,
+  setThemePref: (theme: themes) => void,
 }
+
+export type themes = "light" | "dark" | "green";
 
 export {
   Bool, GeneralContextType, Task,
   TasksContextType
 };
 
+export interface ColorTheme {
+  mainBg: string,
+  textColor: string,
+  dayBg: string,
+  dayHighlightBg: string,
+}

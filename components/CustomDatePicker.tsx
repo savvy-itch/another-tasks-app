@@ -1,4 +1,4 @@
-import { MAIN_BG } from '@/globals';
+import { allThemes } from '@/globals';
 import { useGeneral } from '@/hooks/useGeneral';
 import { useTasks } from '@/hooks/useTasks';
 import Entypo from '@expo/vector-icons/Entypo';
@@ -21,7 +21,7 @@ export default function CustomDatePicker() {
   const [targetDate, setTargetDate] = useState<Date>(trueToday);
   const [isPopulating, setIsPopulating] = useState<boolean>(false);
   const { tasks, isLoading } = useTasks();
-  const { fontSize, fetchAppPrefs } = useGeneral();
+  const { fontSize, curTheme, fetchAppPrefs } = useGeneral();
   const db = useSQLiteContext();
 
   // allow previous months as far back as 1 month before the current one (true current)
@@ -142,11 +142,11 @@ export default function CustomDatePicker() {
               return (
                 <View style={styles.daySlot}>
                   <Pressable
-                    style={[styles.slotBtn, day && styles.hasTasks]}
+                    style={[styles.slotBtn, { backgroundColor: day ? allThemes[curTheme].dayHighlightBg : allThemes[curTheme].dayBg }]}
                     onPress={() => handleDayBtnPress(new Date(curDate.getFullYear(), curDate.getMonth(), item))}
                   >
                     <Text
-                      style={[styles.slotBtnText, trueToday.getDate() === item
+                      style={[styles.slotBtnText, { color: allThemes[curTheme].textColor }, trueToday.getDate() === item
                         && trueToday.getFullYear() === curDate.getFullYear()
                         && trueToday.getMonth() === curDate.getMonth() && styles.today]}
                     >
@@ -167,10 +167,10 @@ export default function CustomDatePicker() {
         animationType='slide'
         visible={showModal}
         onRequestClose={() => setShowModal(false)}
-        backdropColor={MAIN_BG}
+        backdropColor={allThemes[curTheme].mainBg}
       >
-        <Pressable onPress={() => setShowModal(false)}>
-          <Entypo name="cross" size={30} color="#000000" />
+        <Pressable style={{ alignSelf: 'flex-end', marginRight: 20, marginTop: 15 }} onPress={() => setShowModal(false)}>
+          <Entypo name="cross" size={30} color={allThemes[curTheme].textColor} />
         </Pressable>
         <TaskList targetDate={targetDate} />
       </Modal>
@@ -234,9 +234,9 @@ const styles = StyleSheet.create({
   today: {
     fontWeight: 'bold',
   },
-  hasTasks: {
-    backgroundColor: 'hsla(137, 78%, 81%, 1.00)',
-  },
+  // hasTasks: {
+  //   backgroundColor: 'hsla(137, 78%, 81%, 1.00)',
+  // },
   disabledArrow: {
     color: 'hsla(0, 0%, 63%, 1.00)'
   },
