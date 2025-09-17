@@ -2,7 +2,8 @@ import { clearDB } from '@/db'
 import { allThemes } from '@/globals'
 import { useGeneral } from '@/hooks/useGeneral'
 import { useTasks } from '@/hooks/useTasks'
-import { Task } from '@/types'
+import i18n from '@/i18n/i18n'
+import { Languages, Task } from '@/types'
 import AntDesign from '@expo/vector-icons/AntDesign'
 import * as Notifications from 'expo-notifications'
 import * as SQLite from 'expo-sqlite'
@@ -21,11 +22,24 @@ const dateOptions: Intl.DateTimeFormatOptions = {
 
 const taskSkeletonsAmount = 5;
 
+function capitalizeDateStr(s: string, lang: Languages) {
+  if (lang === 'en') return s; // English dates are capitalized by default
+  let capitalizedStr = s.charAt(0).toUpperCase();
+  for (let i = 1; i < s.length; i++) {
+    if (s[i] === ',') {
+      capitalizedStr += s.substring(i, i+5) + s.charAt(i+5).toUpperCase() + s.substring(i+6);
+      break;
+    }
+    capitalizedStr += s[i];
+  }
+  return capitalizedStr;
+}
+
 export default function TaskList({ targetDate }: { targetDate: Date }) {
   const [addTaskMode, setAddTaskMode] = useState<boolean>(false);
   const db = SQLite.useSQLiteContext();
   const { tasks, isLoading, setTasks, fetchAllTasks, deleteExpiredTasks } = useTasks();
-  const { fontSize, curTheme, fetchAppPrefs, setOpenDropdownId } = useGeneral();
+  const { fontSize, curTheme, language, fetchAppPrefs, setOpenDropdownId } = useGeneral();
   const [allNotifs, setAllNotifs] = useState<Notifications.NotificationRequest[]>([]);
   const [targetDateTasks, setTargetDateTasks] = useState<Task[]>([]);
   const [refreshing, setRefreshing] = useState<boolean>(false);
@@ -38,7 +52,7 @@ export default function TaskList({ targetDate }: { targetDate: Date }) {
       endMidnight.setHours(24, 0, 0, 0);
       const filteredTasks = tasks
         .filter(t => t.assignedDate >= startMidnight.getTime() && t.assignedDate < endMidnight.getTime())
-        .sort((a,b) => a.isDone - b.isDone);
+        .sort((a, b) => a.isDone - b.isDone);
       setTargetDateTasks(filteredTasks);
     }
   }, [tasks]);
@@ -109,15 +123,17 @@ export default function TaskList({ targetDate }: { targetDate: Date }) {
       >
         <Pressable style={[StyleSheet.absoluteFillObject, styles.overlay]} onPress={() => setOpenDropdownId(0)} />
         <View>
-          <Text style={[styles.todayText, { fontSize: 20 * fontSize, color: allThemes[curTheme].textColor }]}>{targetDate.toLocaleDateString('en-US', dateOptions)}</Text>
+          <Text style={[styles.todayText, { fontSize: 20 * fontSize, color: allThemes[curTheme].textColor }]}>
+            {capitalizeDateStr(targetDate.toLocaleDateString(language, dateOptions), language)}
+          </Text>
           <View style={styles.tasksContainer}>
             {isLoading
-              ? Array.from({length: taskSkeletonsAmount}).map((_, i) => <TaskSkeleton key={i} />)
+              ? Array.from({ length: taskSkeletonsAmount }).map((_, i) => <TaskSkeleton key={i} />)
               : targetDateTasks.length > 0
                 ? targetDateTasks.map((t, i) => (
-                  <TaskElement key={t.id} task={t} pos={i+1} />
+                  <TaskElement key={t.id} task={t} pos={i + 1} />
                 ))
-                : <Text style={{ color: allThemes[curTheme].textColor }}>No tasks for this day</Text>
+                : <Text style={{ color: allThemes[curTheme].textColor, textAlign: 'center', marginTop: 50 }}>{i18n.t("noTasks")}</Text>
             }
           </View>
 

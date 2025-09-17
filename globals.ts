@@ -8,6 +8,7 @@ export const allThemes: Record<themes, ColorTheme> = {
   light: {
     mainBg: '#FBF3D5',
     textColor: '#222831',
+    // dimText: '#222831',
     dayBg: '#fdf8e8ff',
     dayHighlightBg: '#a9f4beff',
   },

@@ -1,4 +1,5 @@
-import { TasksContext } from "@/tasksContext";
+
+import { TasksContext } from "@/context/tasksContext";
 import { useContext } from "react";
 
 export function useTasks() {

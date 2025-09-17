@@ -13,6 +13,10 @@ const totalSlots = 35;
 const trueToday = new Date();
 const dayBtnSize = 36;
 
+function capitalize(s: string) {
+  return s.charAt(0).toUpperCase() + s.substring(1);
+}
+
 export default function CustomDatePicker() {
   const [curDate, setCurDate] = useState<Date>(new Date());
   const [monthSlots, setMonthSlots] = useState<number[]>([]);
@@ -21,7 +25,7 @@ export default function CustomDatePicker() {
   const [targetDate, setTargetDate] = useState<Date>(trueToday);
   const [isPopulating, setIsPopulating] = useState<boolean>(false);
   const { tasks, isLoading } = useTasks();
-  const { fontSize, curTheme, fetchAppPrefs } = useGeneral();
+  const { fontSize, curTheme, language, fetchAppPrefs } = useGeneral();
   const db = useSQLiteContext();
 
   // allow previous months as far back as 1 month before the current one (true current)
@@ -53,7 +57,7 @@ export default function CustomDatePicker() {
       });
       setDaysWithTasks(filteredTasks);
     }
-    
+
     updateDaysWithTasks();
   }, [db, tasks, curDate]);
 
@@ -103,7 +107,9 @@ export default function CustomDatePicker() {
             (curDate.getFullYear() === trueToday.getFullYear() &&
               curDate.getMonth() < trueToday.getMonth())) && styles.disabledArrow]}>&lt;</Text>
         </Pressable>
-        <Text style={[styles.navText, { fontSize: 17 * fontSize }]}>{Intl.DateTimeFormat("en-US", { month: "long" }).format(curDate)} {curDate.getFullYear()}</Text>
+        <Text style={[styles.navText, { fontSize: 17 * fontSize }]}>
+          {capitalize(Intl.DateTimeFormat(language, { month: "long" }).format(curDate))} {curDate.getFullYear()}
+        </Text>
         <Pressable
           onPress={getNextMonth}
           style={styles.navBtn}

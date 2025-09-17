@@ -19,6 +19,7 @@ Start the app
 Create dev build
    ```bash
    eas build --platform android --profile development
+   eas build --platform android --local
    ```
 
 Create preview build
@@ -27,7 +28,7 @@ Create preview build
    eas build --platform android --profile preview
    ```
 
-or local version (Linux, MacOS only)
+or local version (Linux & MacOS only)
 
    ```bash
    eas build --platform android --profile preview --local

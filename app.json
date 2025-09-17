@@ -35,7 +35,24 @@
           "backgroundColor": "#ffffff"
         }
       ],
-      "expo-sqlite"
+      "expo-sqlite",
+      [
+        "expo-localization",
+        {
+          "supportedLocales": {
+            "android": [
+              "en",
+              "uk",
+              "ru"
+            ],
+            "io": [
+              "en",
+              "uk",
+              "ru"
+            ]
+          }
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

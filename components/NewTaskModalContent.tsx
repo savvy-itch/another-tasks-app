@@ -1,6 +1,7 @@
 import { MAX_TASK_LENGTH } from '@/globals';
 import { useGeneral } from '@/hooks/useGeneral';
 import { useTasks } from '@/hooks/useTasks';
+import i18n from '@/i18n/i18n';
 import { Bool, Task } from '@/types';
 import * as SQLite from 'expo-sqlite';
 import React, { useRef, useState } from 'react';
@@ -58,13 +59,13 @@ export default function NewTaskModalContent({ db, addTaskMode, assignedDate, set
               style={[styles.saveTaskBtn, styles.btn]}
               onPress={onSubmit}
             >
-              <Text style={[styles.btnText, { fontSize: 20 * fontSize }]}>Save</Text>
+              <Text style={[styles.btnText, { fontSize: 20 * fontSize }]}>{i18n.t("save")}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.cancelTaskBtn, styles.btn]}
               onPress={onCancel}
             >
-              <Text style={[styles.btnText, { fontSize: 20 * fontSize }]}>Cancel</Text>
+              <Text style={[styles.btnText, { fontSize: 20 * fontSize }]}>{i18n.t("cancel")}</Text>
             </TouchableOpacity>
           </View>
         </View>

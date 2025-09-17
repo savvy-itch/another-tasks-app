@@ -36,13 +36,16 @@ interface GeneralContextType {
   openDropdownId: number,
   fontSize: number,
   curTheme: themes,
+  language: Languages,
   setOpenDropdownId: React.Dispatch<React.SetStateAction<number>>,
   setFontSizePref: (val: number) => void,
   fetchAppPrefs: () => void,
   setThemePref: (theme: themes) => void,
+  setLangPref: (lang: Languages) => void
 }
 
 export type themes = "light" | "dark" | "green";
+export type Languages = "en" | "uk" | "ru";
 
 export {
   Bool, GeneralContextType, Task,
@@ -54,4 +57,25 @@ export interface ColorTheme {
   textColor: string,
   dayBg: string,
   dayHighlightBg: string,
+}
+
+export interface LanguageObject {
+  langName: string,
+  today: string,
+  calendar: string,
+  settings: string,
+  save: string,
+  cancel: string,
+  weekdays: string[],
+  settingsTab: {
+    fontSize: string,
+    normal: string,
+    large: string,
+    theme: string,
+    language: string,
+    selectLanguage: string,
+    clearData: string,
+    appVersion: string,
+  },
+  noTasks: string,
 }

@@ -1,6 +1,6 @@
+import GeneralProvider from "@/context/generalContext";
+import TasksProvider from "@/context/tasksContext";
 import { migrateDb } from "@/db";
-import GeneralProvider from "@/generalContext";
-import TasksProvider from "@/tasksContext";
 import { Stack } from "expo-router";
 import { SQLiteProvider } from 'expo-sqlite';
 import { StyleSheet, View } from "react-native";

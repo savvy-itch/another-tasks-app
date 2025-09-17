@@ -1,4 +1,5 @@
-import { GeneralContext } from "@/generalContext";
+
+import { GeneralContext } from "@/context/generalContext";
 import { useContext } from "react";
 
 export function useGeneral() {

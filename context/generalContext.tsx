@@ -1,8 +1,10 @@
+import { setFontSizePrefInStorage, setLangPrefInStorage, setThemePrefInStorage } from '@/db';
+import i18n from '@/i18n/i18n';
+import { GeneralContextType, Languages, themes } from '@/types';
+import { getLocales } from 'expo-localization';
 import Storage from 'expo-sqlite/kv-store';
 import { createContext, useState } from "react";
 import { Alert, Appearance } from 'react-native';
-import { setFontSizePrefInStorage, setThemePrefInStorage } from "./db";
-import { GeneralContextType, themes } from "./types";
 
 export const GeneralContext = createContext<GeneralContextType | null>(null);
 
@@ -14,6 +16,7 @@ export default function GeneralProvider({ children }: GeneralProviderProps) {
   const [openDropdownId, setOpenDropdownId] = useState<number>(0);
   const [fontSize, setFontSize] = useState<number>(1);
   const [curTheme, setCurTheme] = useState<themes>("light");
+  const [language, setLanguage] = useState<Languages>("en");
 
   async function fetchAppPrefs() {
     const fontSizePref = await Storage.getItem('fontSize');
@@ -23,13 +26,23 @@ export default function GeneralProvider({ children }: GeneralProviderProps) {
     } else {
       setFontSize(1);
     }
-    
+
     const themePref = await Storage.getItem('theme');
     if (themePref) {
       const theme = JSON.parse(themePref).theme;
       setCurTheme(theme);
     } else {
       setCurTheme(Appearance.getColorScheme() ?? "light");
+    }
+
+    const langPref = await Storage.getItem('lang');
+    if (langPref) {
+      const lang = JSON.parse(langPref).lang;
+      i18n.locale = lang;
+      setLanguage(lang);
+    } else {
+      const langSys = getLocales()[0].languageCode ?? "en";
+      i18n.locale = langSys;
     }
   }
 
@@ -55,15 +68,29 @@ export default function GeneralProvider({ children }: GeneralProviderProps) {
     }
   }
 
+  async function setLangPref(langPref: Languages) {
+    if (langPref !== i18n.locale) {
+      try {
+        await setLangPrefInStorage(langPref);
+        i18n.locale = langPref;
+        setLanguage(langPref);
+      } catch (error) {
+        Alert.alert(String(error));
+      }
+    }
+  }
+
   return (
     <GeneralContext.Provider value={{
-      openDropdownId, 
-      setOpenDropdownId, 
+      openDropdownId,
+      setOpenDropdownId,
       fontSize,
       curTheme,
+      language,
       setFontSizePref,
       fetchAppPrefs,
       setThemePref,
+      setLangPref,
     }}>
       {children}
     </GeneralContext.Provider>

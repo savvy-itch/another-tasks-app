@@ -1,7 +1,7 @@
 import * as SQLite from 'expo-sqlite';
 import Storage from 'expo-sqlite/kv-store';
 import { Alert } from 'react-native';
-import { Task, themes } from "./types";
+import { Languages, Task, themes } from "./types";
 
 const TASKS_TABLE_NAME = "tasks";
 
@@ -17,6 +17,15 @@ export async function setFontSizePrefInStorage(val: number) {
 export async function setThemePrefInStorage(theme: themes) {
   try {
     await Storage.setItem('theme', JSON.stringify({ theme }));
+  } catch (error) {
+    Alert.alert(String(error));
+    console.error(error);
+  }
+}
+
+export async function setLangPrefInStorage(lang: Languages) {
+  try {
+    await Storage.setItem('lang', JSON.stringify({ lang }));
   } catch (error) {
     Alert.alert(String(error));
     console.error(error);

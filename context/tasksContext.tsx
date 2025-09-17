@@ -1,10 +1,10 @@
+import { addTaskToDb, cancelNotifInDb, deleteExpiredTasksFromDb, deleteTaskFromDb, editTextInDb, fetchAllTasksFromDb, fetchTasksForDayFromDb, fetchTodaysTasksFromDb, setNotifTimeInDb, toggleStatusInDb } from "@/db";
+import { DAYS_TO_TASK_EXPIRATION } from '@/globals';
+import { Bool, Task, TasksContextType } from "@/types";
 import * as Notifications from 'expo-notifications';
 import * as SQLite from 'expo-sqlite';
 import React, { createContext, useState } from "react";
 import { Alert } from 'react-native';
-import { addTaskToDb, cancelNotifInDb, deleteExpiredTasksFromDb, deleteTaskFromDb, editTextInDb, fetchAllTasksFromDb, fetchTasksForDayFromDb, fetchTodaysTasksFromDb, setNotifTimeInDb, toggleStatusInDb } from "./db";
-import { DAYS_TO_TASK_EXPIRATION } from './globals';
-import { Bool, Task, TasksContextType } from "./types";
 
 export const TasksContext = createContext<TasksContextType | null>(null);
 

@@ -30,7 +30,6 @@ export default function ThemeRadioButton({ val }: { val: themes }) {
       />
       <View style={[styles.radioIndicator, curTheme === val && { borderColor: allThemes[curTheme].mainBg } ]}>
         <View style={[curTheme === val && styles.selected, { backgroundColor: allThemes[curTheme].mainBg }]} />
-        {/* <View style={[styles.indicatorCore, fontSize === val && { backgroundColor: allThemes[curTheme].textColor }]} /> */}
       </View>
     </Pressable>
   )
