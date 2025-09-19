@@ -1,5 +1,4 @@
-import { clearDB } from '@/db'
-import { allThemes } from '@/globals'
+import { allThemes, BASE_FONT_SIZE } from '@/globals'
 import { useGeneral } from '@/hooks/useGeneral'
 import { useTasks } from '@/hooks/useTasks'
 import i18n from '@/i18n/i18n'
@@ -27,7 +26,7 @@ function capitalizeDateStr(s: string, lang: Languages) {
   let capitalizedStr = s.charAt(0).toUpperCase();
   for (let i = 1; i < s.length; i++) {
     if (s[i] === ',') {
-      capitalizedStr += s.substring(i, i+5) + s.charAt(i+5).toUpperCase() + s.substring(i+6);
+      capitalizedStr += s.substring(i, i + 5) + s.charAt(i + 5).toUpperCase() + s.substring(i + 6);
       break;
     }
     capitalizedStr += s[i];
@@ -38,7 +37,7 @@ function capitalizeDateStr(s: string, lang: Languages) {
 export default function TaskList({ targetDate }: { targetDate: Date }) {
   const [addTaskMode, setAddTaskMode] = useState<boolean>(false);
   const db = SQLite.useSQLiteContext();
-  const { tasks, isLoading, setTasks, fetchAllTasks, deleteExpiredTasks } = useTasks();
+  const { tasks, isLoading, fetchAllTasks, deleteExpiredTasks } = useTasks();
   const { fontSize, curTheme, language, fetchAppPrefs, setOpenDropdownId } = useGeneral();
   const [allNotifs, setAllNotifs] = useState<Notifications.NotificationRequest[]>([]);
   const [targetDateTasks, setTargetDateTasks] = useState<Task[]>([]);
@@ -53,6 +52,7 @@ export default function TaskList({ targetDate }: { targetDate: Date }) {
       const filteredTasks = tasks
         .filter(t => t.assignedDate >= startMidnight.getTime() && t.assignedDate < endMidnight.getTime())
         .sort((a, b) => a.isDone - b.isDone);
+      console.log({filteredTasks});
       setTargetDateTasks(filteredTasks);
     }
   }, [tasks]);
@@ -73,17 +73,6 @@ export default function TaskList({ targetDate }: { targetDate: Date }) {
     try {
       const notifs: Notifications.NotificationRequest[] = await Notifications.getAllScheduledNotificationsAsync();
       setAllNotifs(notifs);
-    } catch (error) {
-      Alert.alert(String(error));
-    }
-  }
-
-  async function resetData() {
-    try {
-      await Notifications.cancelAllScheduledNotificationsAsync();
-      setTasks([]);
-      clearDB(db);
-      Alert.alert('db reset');
     } catch (error) {
       Alert.alert(String(error));
     }
@@ -133,21 +122,16 @@ export default function TaskList({ targetDate }: { targetDate: Date }) {
                 ? targetDateTasks.map((t, i) => (
                   <TaskElement key={t.id} task={t} pos={i + 1} />
                 ))
-                : <Text style={{ color: allThemes[curTheme].textColor, textAlign: 'center', marginTop: 50 }}>{i18n.t("noTasks")}</Text>
+                : <Text style={{ fontSize: fontSize * BASE_FONT_SIZE, color: allThemes[curTheme].textColor, textAlign: 'center', marginTop: 50 }}>
+                  {i18n.t("noTasks")}
+                </Text>
             }
           </View>
 
         </View>
         <NewTaskModalContent db={db} addTaskMode={addTaskMode} setAddTaskMode={setAddTaskMode} assignedDate={targetDate.getTime()} />
 
-        <TouchableOpacity
-          style={styles.clearBtn}
-          onPress={resetData}
-        >
-          <Text>Clear DB</Text>
-        </TouchableOpacity>
-
-        {allNotifs.length > 0 ? (
+        {/* {allNotifs.length > 0 ? (
           <View>
             {allNotifs.map(n => (
               <Text key={n.identifier}>{n.identifier}</Text>
@@ -155,7 +139,7 @@ export default function TaskList({ targetDate }: { targetDate: Date }) {
           </View>
         ) : (
           <Text>No scheduled notifications</Text>
-        )}
+        )} */}
 
         {/* <View>
           <Text>All Tasks:</Text>

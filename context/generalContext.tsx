@@ -1,4 +1,4 @@
-import { setFontSizePrefInStorage, setLangPrefInStorage, setThemePrefInStorage } from '@/db';
+import { clearPrefsInStorage, setFontSizePrefInStorage, setLangPrefInStorage, setThemePrefInStorage } from '@/db';
 import i18n from '@/i18n/i18n';
 import { GeneralContextType, Languages, themes } from '@/types';
 import { getLocales } from 'expo-localization';
@@ -80,6 +80,19 @@ export default function GeneralProvider({ children }: GeneralProviderProps) {
     }
   }
 
+  async function clearPrefs() {
+    try {
+      await clearPrefsInStorage();
+      setFontSize(1);
+      setCurTheme(Appearance.getColorScheme() ?? "light");
+      const langSys = getLocales()[0].languageCode as Languages ?? "en";
+      i18n.locale = langSys;
+      setLanguage(langSys);
+    } catch (error) {
+      Alert.alert(String(error));
+    }
+  }
+
   return (
     <GeneralContext.Provider value={{
       openDropdownId,
@@ -91,6 +104,7 @@ export default function GeneralProvider({ children }: GeneralProviderProps) {
       fetchAppPrefs,
       setThemePref,
       setLangPref,
+      clearPrefs
     }}>
       {children}
     </GeneralContext.Provider>

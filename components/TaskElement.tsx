@@ -1,6 +1,7 @@
 import { MAX_TASK_LENGTH } from '@/globals';
 import { useGeneral } from '@/hooks/useGeneral';
 import { useTasks } from '@/hooks/useTasks';
+import { useTranslation } from '@/hooks/useTranslation';
 import { Task } from '@/types';
 import { padNumber } from '@/utils';
 import AntDesign from '@expo/vector-icons/AntDesign';
@@ -30,6 +31,7 @@ export default function TaskElement({ task, pos }: { task: Task, pos: number }) 
   const translateX = useSharedValue(0);
   const deleteIconSize = useSharedValue(0);
   const { width } = useWindowDimensions();
+  const i18n = useTranslation();
 
   async function submitTextEdit() {
     if (taskValue) {
@@ -204,7 +206,7 @@ export default function TaskElement({ task, pos }: { task: Task, pos: number }) 
                       disabled={task.isDone ? true : false}
                     >
                       <Entypo name="edit" size={26} color="black" />
-                      <Text style={{ fontSize: 14 * fontSize }}>Edit</Text>
+                      <Text style={{ fontSize: 14 * fontSize }}>{i18n.t("task.edit")}</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                       style={[styles.notifBtn, styles.dropdownOption]}
@@ -212,14 +214,14 @@ export default function TaskElement({ task, pos }: { task: Task, pos: number }) 
                       disabled={task.isDone ? true : false}
                     >
                       <AntDesign name="bells" size={26} color="black" />
-                      <Text style={{ fontSize: 14 * fontSize }}>Notification</Text>
+                      <Text style={{ fontSize: 14 * fontSize }}>{i18n.t("task.notification")}</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                       style={[styles.notifBtn, styles.dropdownOption]}
                       onPress={() => deleteTask(db, task.id)}
                     >
                       <AntDesign name="delete" size={26} color="black" />
-                      <Text style={{ fontSize: 14 * fontSize }}>Delete</Text>
+                      <Text style={{ fontSize: 14 * fontSize }}>{i18n.t("task.delete")}</Text>
                     </TouchableOpacity>
                     {!task.isDone && (typeof (task.notifDate) === 'number') && task.notifDate > Date.now() && (
                       <TouchableOpacity
@@ -227,7 +229,7 @@ export default function TaskElement({ task, pos }: { task: Task, pos: number }) 
                         onPress={cancelNotif}
                       >
                         <Feather name="bell-off" size={26} color="black" />
-                        <Text style={{ fontSize: 14 * fontSize }}>Delete notification</Text>
+                        <Text style={{ fontSize: 14 * fontSize }}>{i18n.t("task.deleteNotification")}</Text>
                       </TouchableOpacity>
                     )}
                   </View>

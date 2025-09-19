@@ -103,7 +103,7 @@ export default function CustomDatePicker() {
           disabled={curDate.getFullYear() > trueToday.getFullYear() ? false : !((curDate.getMonth() + 1) >= trueToday.getMonth())}
           style={styles.navBtn}
         >
-          <Text style={[styles.navText, { fontSize: 17 * fontSize }, (curDate.getFullYear() < trueToday.getFullYear() ||
+          <Text style={[styles.navText, { fontSize: 19 * fontSize }, (curDate.getFullYear() < trueToday.getFullYear() ||
             (curDate.getFullYear() === trueToday.getFullYear() &&
               curDate.getMonth() < trueToday.getMonth())) && styles.disabledArrow]}>&lt;</Text>
         </Pressable>
@@ -114,7 +114,7 @@ export default function CustomDatePicker() {
           onPress={getNextMonth}
           style={styles.navBtn}
         >
-          <Text style={[styles.navText, { fontSize: 17 * fontSize }]}>&gt;</Text>
+          <Text style={[styles.navText, { fontSize: 19 * fontSize }]}>&gt;</Text>
         </Pressable>
       </View>
 

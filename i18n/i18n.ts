@@ -9,6 +9,7 @@ export const translations: Record<Languages, LanguageObject> = {
     settings: 'Settings',
     save: "Save",
     cancel: "Cancel",
+    ok: 'OK',
     weekdays: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
     settingsTab: {
       fontSize: 'Font size',
@@ -18,9 +19,16 @@ export const translations: Record<Languages, LanguageObject> = {
       language: 'Language',
       selectLanguage: 'Select language',
       clearData: 'Clear data',
-      appVersion: 'App version'
+      clearDataDialog: 'Are you sure you want to delete all app data?',
+      appVersion: 'App version',
     },
     noTasks: 'No tasks planned for this day',
+    task: {
+      edit: 'Edit',
+      delete: 'Delete',
+      notification: 'Notification',
+      deleteNotification: 'Delete notification',
+    }
   },
   ru: {
     langName: 'Русский',
@@ -29,6 +37,7 @@ export const translations: Record<Languages, LanguageObject> = {
     settings: 'Настройки',
     save: "Сохранить",
     cancel: "Отменить",
+    ok: 'Oк',
     weekdays: ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'],
     settingsTab: {
       fontSize: 'Размер шрифта',
@@ -38,9 +47,16 @@ export const translations: Record<Languages, LanguageObject> = {
       language: 'Язык',
       selectLanguage: 'Выбрать язык',
       clearData: 'Очистить данные',
-      appVersion: 'Версия приложения'
+      clearDataDialog: 'Вы уверены, что хотите удалить все данные приложения?',
+      appVersion: 'Версия приложения',
     },
     noTasks: 'Для этого дня не запланировано дел',
+    task: {
+      edit: 'Редактировать',
+      delete: 'Удалить',
+      notification: 'Уведомление',
+      deleteNotification: 'Удалить уведомление',
+    }
   },
   uk: {
     langName: 'Українська',
@@ -49,6 +65,7 @@ export const translations: Record<Languages, LanguageObject> = {
     settings: 'Налаштування',
     save: "Зберегти",
     cancel: "Відмінити",
+    ok: 'Oк',
     weekdays: ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Нд'],
     settingsTab: {
       fontSize: 'Розмір шрифту',
@@ -58,9 +75,16 @@ export const translations: Record<Languages, LanguageObject> = {
       language: 'Мова',
       selectLanguage: 'Вибрати мову',
       clearData: 'Видалити дані',
-      appVersion: 'Версія додатку'
+      clearDataDialog: 'Ви впевнені, що хочете видалити всі дані додатку?',
+      appVersion: 'Версія додатку',
     },
     noTasks: 'Для цього дня не заплановано справ',
+    task: {
+      edit: 'Редагувати',
+      delete: 'Видалити',
+      notification: 'Нагадування',
+      deleteNotification: 'Видалити нагадування',
+    }
   },
 }
 

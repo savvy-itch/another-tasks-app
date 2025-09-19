@@ -1,4 +1,4 @@
-import { addTaskToDb, cancelNotifInDb, deleteExpiredTasksFromDb, deleteTaskFromDb, editTextInDb, fetchAllTasksFromDb, fetchTasksForDayFromDb, fetchTodaysTasksFromDb, setNotifTimeInDb, toggleStatusInDb } from "@/db";
+import { addTaskToDb, cancelNotifInDb, clearDB, deleteExpiredTasksFromDb, deleteTaskFromDb, editTextInDb, fetchAllTasksFromDb, fetchTasksForDayFromDb, fetchTodaysTasksFromDb, setNotifTimeInDb, toggleStatusInDb } from "@/db";
 import { DAYS_TO_TASK_EXPIRATION } from '@/globals';
 import { Bool, Task, TasksContextType } from "@/types";
 import * as Notifications from 'expo-notifications';
@@ -133,6 +133,16 @@ export default function TasksProvider({ children }: TasksProviderProps) {
     }
   }
 
+  async function clearData(db: SQLite.SQLiteDatabase) {
+    try {
+      await clearDB(db);
+      await Notifications.cancelAllScheduledNotificationsAsync();
+      setTasks([]);
+    } catch (error) {
+      Alert.alert(String(error));
+    }
+  }
+
   return (
     <TasksContext.Provider value={{
       tasks,
@@ -149,6 +159,7 @@ export default function TasksProvider({ children }: TasksProviderProps) {
       setNotifTime,
       deleteNotif,
       deleteExpiredTasks,
+      clearData,
     }}>
       {children}
     </TasksContext.Provider>

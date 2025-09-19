@@ -1,6 +1,6 @@
 import { allThemes } from "@/globals";
 import { useGeneral } from "@/hooks/useGeneral";
-import i18n from "@/i18n/i18n";
+import { useTranslation } from "@/hooks/useTranslation";
 import { Stack } from "expo-router";
 
 export const unstable_settings = {
@@ -9,6 +9,7 @@ export const unstable_settings = {
 
 export default function SettingsLayout() {
   const { curTheme } = useGeneral();
+  const i18n = useTranslation();
 
   return (
     <Stack screenOptions={{ headerShown: false }}>

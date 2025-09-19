@@ -1,11 +1,12 @@
 import { allThemes } from '@/globals';
 import { useGeneral } from '@/hooks/useGeneral';
-import i18n from '@/i18n/i18n';
+import { useTranslation } from '@/hooks/useTranslation';
 import React, { memo } from 'react';
 import { FlatList, StyleSheet, Text } from 'react-native';
 
 const Weekdays = memo(function Weekdays() {
   const {curTheme} = useGeneral();
+  const i18n = useTranslation();
 
   return (
     <FlatList 

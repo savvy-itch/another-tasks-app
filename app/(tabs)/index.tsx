@@ -1,5 +1,5 @@
 import TaskList from '@/components/TaskList';
-import i18n from '@/i18n/i18n';
+import { useTranslation } from '@/hooks/useTranslation';
 import Storage from 'expo-sqlite/kv-store';
 import { useEffect } from 'react';
 import { ensureNotificationPermissions, initNotiffications } from '../../notifications';
@@ -10,6 +10,8 @@ ensureNotificationPermissions();
 const today = new Date();
 
 export default function Index() {
+  const i18n = useTranslation();
+  
   useEffect(() => {
     async function loadLangPref() {
       try {

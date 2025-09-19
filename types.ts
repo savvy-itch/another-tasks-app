@@ -30,6 +30,7 @@ interface TasksContextType {
   setNotifTime: (db: SQLite.SQLiteDatabase, taskId: number, notifDate: number, notifId: string) => void,
   deleteNotif: (db: SQLite.SQLiteDatabase, taskId: number, notifId: string) => void,
   deleteExpiredTasks: (db: SQLite.SQLiteDatabase) => void,
+  clearData: (db: SQLite.SQLiteDatabase) => void,
 };
 
 interface GeneralContextType {
@@ -41,7 +42,8 @@ interface GeneralContextType {
   setFontSizePref: (val: number) => void,
   fetchAppPrefs: () => void,
   setThemePref: (theme: themes) => void,
-  setLangPref: (lang: Languages) => void
+  setLangPref: (lang: Languages) => void,
+  clearPrefs: () => void,
 }
 
 export type themes = "light" | "dark" | "green";
@@ -66,6 +68,7 @@ export interface LanguageObject {
   settings: string,
   save: string,
   cancel: string,
+  ok: string,
   weekdays: string[],
   settingsTab: {
     fontSize: string,
@@ -76,6 +79,13 @@ export interface LanguageObject {
     selectLanguage: string,
     clearData: string,
     appVersion: string,
+    clearDataDialog: string,
   },
   noTasks: string,
+  task: {
+    edit: string,
+    delete: string,
+    notification: string,
+    deleteNotification: string,
+  }
 }

@@ -34,7 +34,7 @@ export async function setLangPrefInStorage(lang: Languages) {
 
 export async function migrateDb(db: SQLite.SQLiteDatabase) {
   try {
-    const DB_VERSION = 2;
+    const DB_VERSION = 1;
 
     const tableExists = await db.getFirstAsync<{ name: string }>(
       `SELECT name FROM sqlite_master WHERE type='table' AND name='${TASKS_TABLE_NAME}';`
@@ -138,6 +138,17 @@ export async function setNotifTimeInDb(db: SQLite.SQLiteDatabase, id: number, no
 export async function cancelNotifInDb(db: SQLite.SQLiteDatabase, id: number) {
   try {
     await db.runAsync('UPDATE tasks SET notifDate = ?, notifId = ? WHERE id = ?', null, null, id);
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+}
+
+export async function clearPrefsInStorage() {
+  try {
+    await Storage.removeItem('theme');
+    await Storage.removeItem('fontSize');
+    await Storage.removeItem('lang');
   } catch (error) {
     console.error(error);
     throw error;

@@ -1,7 +1,7 @@
 import { MAX_TASK_LENGTH } from '@/globals';
 import { useGeneral } from '@/hooks/useGeneral';
 import { useTasks } from '@/hooks/useTasks';
-import i18n from '@/i18n/i18n';
+import { useTranslation } from '@/hooks/useTranslation';
 import { Bool, Task } from '@/types';
 import * as SQLite from 'expo-sqlite';
 import React, { useRef, useState } from 'react';
@@ -19,6 +19,7 @@ export default function NewTaskModalContent({ db, addTaskMode, assignedDate, set
   const { addTask } = useTasks();
   const { fontSize } = useGeneral();
   const newTaskRef = useRef(null);
+  const i18n = useTranslation();
 
   async function onSubmit() {
     if (taskValue) {
@@ -27,14 +28,12 @@ export default function NewTaskModalContent({ db, addTaskMode, assignedDate, set
       addTask(db, newTask);
       setAddTaskMode(false);
       setTaskValue('');
-      setAddTaskMode(false);
     }
   }
 
   function onCancel() {
     setAddTaskMode(false);
     setTaskValue('');
-    setAddTaskMode(false);
   }
 
   return (

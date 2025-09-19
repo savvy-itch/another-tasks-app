@@ -1,15 +1,17 @@
+import ClearDataModal from '@/components/ClearDataModal';
 import RadioButton from '@/components/RadioButton';
 import ThemeRadioButton from '@/components/ThemeRadioButton';
 import { allThemes, BASE_FONT_SIZE } from '@/globals';
 import { useGeneral } from '@/hooks/useGeneral';
-import i18n, { translations } from '@/i18n/i18n';
+import { useTranslation } from '@/hooks/useTranslation';
+import { translations } from '@/i18n/i18n';
 import { themes } from '@/types';
 import Feather from '@expo/vector-icons/Feather';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import * as Application from 'expo-application';
 import { Link } from 'expo-router';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated from 'react-native-reanimated';
 
@@ -19,7 +21,9 @@ const fontSizeCoef = {
 }
 
 export default function Settings() {
+  const [showClearDataModal, setShowClearDataModal] = useState<boolean>(false);
   const { fontSize, curTheme, language, fetchAppPrefs } = useGeneral();
+  const i18n = useTranslation();
 
   useEffect(() => {
     fetchAppPrefs()
@@ -63,10 +67,18 @@ export default function Settings() {
 
       <View style={[styles.divider, { borderColor: allThemes[curTheme].textColor, opacity: 0.5 }]} />
 
-      <View style={styles.headingWrapper}>
-        <FontAwesome name="warning" size={BASE_FONT_SIZE} color={allThemes[curTheme].textColor} />
-        <Text style={{ fontSize: BASE_FONT_SIZE * fontSize, color: allThemes[curTheme].textColor }}>{i18n.t("settingsTab.clearData")}</Text>
-      </View>
+      <Pressable 
+        style={[styles.inlineOption, styles.inlineContainer]}
+        onPress={() => setShowClearDataModal(true)}
+      >
+        <View style={styles.headingWrapper}>
+          <FontAwesome name="warning" size={BASE_FONT_SIZE} color={allThemes[curTheme].textColor} />
+          <Text style={{ fontSize: BASE_FONT_SIZE * fontSize, color: allThemes[curTheme].textColor }}>
+            {i18n.t("settingsTab.clearData")}
+          </Text>
+        </View>
+      </Pressable>
+      <ClearDataModal showClearDataModal={showClearDataModal} setShowClearDataModal={setShowClearDataModal} />
 
       <View style={[styles.divider, { borderColor: allThemes[curTheme].textColor, opacity: 0.5 }]} />
 
@@ -75,7 +87,7 @@ export default function Settings() {
           <Feather name="info" size={BASE_FONT_SIZE} color={allThemes[curTheme].textColor} />
           <Text style={{ fontSize: BASE_FONT_SIZE * fontSize, color: allThemes[curTheme].textColor }}>{i18n.t("settingsTab.appVersion")}</Text>
         </View>
-        <Text style={{ fontSize: 15 * fontSize, color: allThemes[curTheme].textColor, opacity: 0.5 }}>{Application.nativeApplicationVersion}</Text>
+        <Text style={{ fontSize: 15 * fontSize, color: allThemes[curTheme].textColor, opacity: 0.5 }}>v.{Application.nativeApplicationVersion}</Text>
       </View>
     </Animated.ScrollView>
   )
