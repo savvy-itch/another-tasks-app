@@ -1,3 +1,4 @@
+import { migrateDb } from '@/db'
 import { allThemes, BASE_FONT_SIZE } from '@/globals'
 import { useGeneral } from '@/hooks/useGeneral'
 import { useTasks } from '@/hooks/useTasks'
@@ -34,6 +35,17 @@ function capitalizeDateStr(s: string, lang: Languages) {
   return capitalizedStr;
 }
 
+function compareTasks(a: Task, b: Task): number {
+  return getRank(a) - getRank(b);
+}
+
+function getRank(t: Task): number {
+  if (t.isDone) return 2;
+  if (t.priority === "Important") return -1;
+  if (t.priority === "General") return 1;
+  return 0;
+}
+
 export default function TaskList({ targetDate }: { targetDate: Date }) {
   const [addTaskMode, setAddTaskMode] = useState<boolean>(false);
   const db = SQLite.useSQLiteContext();
@@ -51,19 +63,20 @@ export default function TaskList({ targetDate }: { targetDate: Date }) {
       endMidnight.setHours(24, 0, 0, 0);
       const filteredTasks = tasks
         .filter(t => t.assignedDate >= startMidnight.getTime() && t.assignedDate < endMidnight.getTime())
-        .sort((a, b) => a.isDone - b.isDone);
-      console.log({filteredTasks});
+        .sort((a, b) => compareTasks(a, b));
       setTargetDateTasks(filteredTasks);
+    } else {
+      setTargetDateTasks([]);
     }
   }, [tasks]);
 
-  const onRefresh = useCallback(() => {
+  const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    fetchAllTasks(db);
-    fetchTasksForDay(targetDate);
+    await fetchAllTasks(db);
+    // fetchTasksForDay(targetDate);
     setOpenDropdownId(0)
     setRefreshing(false);
-  }, [db, fetchTasksForDay, targetDate, fetchAllTasks, setOpenDropdownId]);
+  }, [db, fetchAllTasks, setOpenDropdownId]);
 
   function onPress() {
     setAddTaskMode(true);
@@ -80,6 +93,7 @@ export default function TaskList({ targetDate }: { targetDate: Date }) {
 
   useEffect(() => {
     async function updateData() {
+      await migrateDb(db);
       await deleteExpiredTasks(db);
       await fetchAllTasks(db);
     }
@@ -88,7 +102,7 @@ export default function TaskList({ targetDate }: { targetDate: Date }) {
 
   useEffect(() => {
     fetchTasksForDay(targetDate);
-  }, [targetDate, tasks]);
+  }, [targetDate, tasks, fetchTasksForDay]);
 
   useEffect(() => {
     getAllNotifs();
@@ -120,7 +134,7 @@ export default function TaskList({ targetDate }: { targetDate: Date }) {
               ? Array.from({ length: taskSkeletonsAmount }).map((_, i) => <TaskSkeleton key={i} />)
               : targetDateTasks.length > 0
                 ? targetDateTasks.map((t, i) => (
-                  <TaskElement key={t.id} task={t} pos={i + 1} />
+                  <TaskElement key={t.id} task={t} pos={i + 1} db={db} />
                 ))
                 : <Text style={{ fontSize: fontSize * BASE_FONT_SIZE, color: allThemes[curTheme].textColor, textAlign: 'center', marginTop: 50 }}>
                   {i18n.t("noTasks")}
@@ -160,13 +174,10 @@ export default function TaskList({ targetDate }: { targetDate: Date }) {
 
 const styles = StyleSheet.create({
   container: {
-    // backgroundColor: MAIN_BG,
     gap: 6,
     padding: 5,
     minHeight: '100%',
     paddingTop: 25,
-    // borderWidth: 1,
-    // borderColor: 'blue',
   },
   headerPadding: {
     height: 40,
@@ -175,8 +186,6 @@ const styles = StyleSheet.create({
   createBtn: {
     borderRadius: '50%',
     position: 'absolute',
-    // bottom: '0%',
-    // right: '5%',
     right: '4%',
     bottom: '4%',
     backgroundColor: 'royalblue',
@@ -201,8 +210,6 @@ const styles = StyleSheet.create({
     marginTop: 8
   },
   overlay: {
-    // borderWidth: 1,
-    // borderColor: 'red',
     minHeight: '100%',
   },
   tasksContainer: {

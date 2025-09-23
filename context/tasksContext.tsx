@@ -1,6 +1,6 @@
-import { addTaskToDb, cancelNotifInDb, clearDB, deleteExpiredTasksFromDb, deleteTaskFromDb, editTextInDb, fetchAllTasksFromDb, fetchTasksForDayFromDb, fetchTodaysTasksFromDb, setNotifTimeInDb, toggleStatusInDb } from "@/db";
+import { addTaskToDb, cancelNotifInDb, changePriorityInDb, clearDB, deleteExpiredTasksFromDb, deleteTaskFromDb, editTextInDb, fetchAllTasksFromDb, fetchTasksForDayFromDb, fetchTodaysTasksFromDb, setNotifTimeInDb, toggleStatusInDb } from "@/db";
 import { DAYS_TO_TASK_EXPIRATION } from '@/globals';
-import { Bool, Task, TasksContextType } from "@/types";
+import { Bool, Task, TaskPriorities, TasksContextType } from "@/types";
 import * as Notifications from 'expo-notifications';
 import * as SQLite from 'expo-sqlite';
 import React, { createContext, useState } from "react";
@@ -22,16 +22,29 @@ export default function TasksProvider({ children }: TasksProviderProps) {
       const res = await fetchAllTasksFromDb(db);
       setTasks(res);
     } catch (error) {
-      Alert.alert(String(error));
+      Alert.alert(String(error) + 'from fetchAllTasks()');
     } finally {
       setIsLoading(false);
+      // console.log('fetchAllTask()');
     }
   }
 
-  async function addTask(db: SQLite.SQLiteDatabase, newTask: Task) {
+  async function addTask(db: SQLite.SQLiteDatabase, newTask: Omit<Task, "id">) {
     try {
-      await addTaskToDb(db, newTask);
-      setTasks(prev => [...prev, newTask]);
+      const newTaskWithId = await addTaskToDb(db, newTask);
+      setTasks(prev => [...prev, newTaskWithId]);
+    } catch (error) {
+      Alert.alert(String(error));
+    }
+  }
+
+  async function changePriority(db: SQLite.SQLiteDatabase, id: number, newPriority: TaskPriorities) {
+    try {
+      await changePriorityInDb(db, id, newPriority);
+      setTasks(prev =>
+        prev.map(t =>
+          t.id === id ? { ...t, priority: newPriority } : t
+        ));
     } catch (error) {
       Alert.alert(String(error));
     }
@@ -42,6 +55,7 @@ export default function TasksProvider({ children }: TasksProviderProps) {
       await deleteTaskFromDb(db, id);
       const updatedTasks = tasks.filter(t => t.id !== id);
       setTasks(updatedTasks);
+      // Alert.alert("Task has been deleted");
     } catch (error) {
       Alert.alert(String(error));
     }
@@ -130,6 +144,8 @@ export default function TasksProvider({ children }: TasksProviderProps) {
       await deleteExpiredTasksFromDb(db, expDate);
     } catch (error) {
       Alert.alert(String(error));
+    } finally {
+      // console.log('deleteExpiredTasks()');
     }
   }
 
@@ -160,6 +176,7 @@ export default function TasksProvider({ children }: TasksProviderProps) {
       deleteNotif,
       deleteExpiredTasks,
       clearData,
+      changePriority,
     }}>
       {children}
     </TasksContext.Provider>

@@ -1,9 +1,7 @@
-import { allThemes, BASE_FONT_SIZE } from '@/globals';
+import { allThemes, BASE_FONT_SIZE, INDICATOR_SIZE } from '@/globals';
 import { useGeneral } from '@/hooks/useGeneral';
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-
-const INDICATOR_SIZE = 17;
 
 export default function RadioButton({ text, val }: { text: string, val: number }) {
   const { fontSize, curTheme, setFontSizePref } = useGeneral();

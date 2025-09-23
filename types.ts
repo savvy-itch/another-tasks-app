@@ -13,7 +13,10 @@ interface Task {
   notifDate?: number | null,
   notifId?: string | null,
   isDone: Bool,
+  priority: TaskPriorities,
 };
+
+export type TaskPriorities = "General" | "Important";
 
 interface TasksContextType {
   tasks: Task[],
@@ -21,7 +24,7 @@ interface TasksContextType {
   setIsLoading: (isLoading: boolean) => void,
   setTasks: (tasks: Task[]) => void,
   fetchAllTasks: (db: SQLite.SQLiteDatabase) => void,
-  addTask: (db: SQLite.SQLiteDatabase, task: Task) => void,
+  addTask: (db: SQLite.SQLiteDatabase, task: Omit<Task, "id">) => void,
   deleteTask: (db: SQLite.SQLiteDatabase, taskId: number) => void,
   toggleStatus: (db: SQLite.SQLiteDatabase, taskId: number) => void,
   fetchTodaysTasks: (db: SQLite.SQLiteDatabase) => void,
@@ -31,6 +34,7 @@ interface TasksContextType {
   deleteNotif: (db: SQLite.SQLiteDatabase, taskId: number, notifId: string) => void,
   deleteExpiredTasks: (db: SQLite.SQLiteDatabase) => void,
   clearData: (db: SQLite.SQLiteDatabase) => void,
+  changePriority: (db: SQLite.SQLiteDatabase, id: number, newPriority: TaskPriorities) => void
 };
 
 interface GeneralContextType {
@@ -69,6 +73,7 @@ export interface LanguageObject {
   save: string,
   cancel: string,
   ok: string,
+  newTaskPlaceholder: string,
   weekdays: string[],
   settingsTab: {
     fontSize: string,
@@ -87,5 +92,13 @@ export interface LanguageObject {
     delete: string,
     notification: string,
     deleteNotification: string,
-  }
+    changePriority: string,
+  },
+  priorities: {
+    General: string,
+    Important: string,
+  },
+  priority: string,
 }
+
+export type Migration = (db: SQLite.SQLiteDatabase) => Promise<void>;

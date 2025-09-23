@@ -1,4 +1,4 @@
-import { ColorTheme, themes } from "./types";
+import { ColorTheme, TaskPriorities, themes } from "./types";
 
 export const MAX_TASK_LENGTH = 50;
 export const DAYS_TO_TASK_EXPIRATION = 7;
@@ -26,3 +26,5 @@ export const allThemes: Record<themes, ColorTheme> = {
 }
 
 export const BASE_FONT_SIZE = 18;
+export const INDICATOR_SIZE = 17;
+export const ALL_PRIORITIES: TaskPriorities[] = ["General", "Important"];

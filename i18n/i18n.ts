@@ -10,6 +10,7 @@ export const translations: Record<Languages, LanguageObject> = {
     save: "Save",
     cancel: "Cancel",
     ok: 'OK',
+    newTaskPlaceholder: "Enter new task...",
     weekdays: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
     settingsTab: {
       fontSize: 'Font size',
@@ -28,7 +29,13 @@ export const translations: Record<Languages, LanguageObject> = {
       delete: 'Delete',
       notification: 'Notification',
       deleteNotification: 'Delete notification',
-    }
+      changePriority: 'Change priority'
+    },
+    priorities: {
+      General: 'General',
+      Important: 'Important',
+    },
+    priority: "Priority",
   },
   ru: {
     langName: 'Русский',
@@ -38,6 +45,7 @@ export const translations: Record<Languages, LanguageObject> = {
     save: "Сохранить",
     cancel: "Отменить",
     ok: 'Oк',
+    newTaskPlaceholder: 'Введите новую задачу...',
     weekdays: ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'],
     settingsTab: {
       fontSize: 'Размер шрифта',
@@ -56,7 +64,13 @@ export const translations: Record<Languages, LanguageObject> = {
       delete: 'Удалить',
       notification: 'Уведомление',
       deleteNotification: 'Удалить уведомление',
-    }
+      changePriority: 'Изменить приоритет',
+    },
+    priorities: {
+      General: 'Обычное',
+      Important: 'Важное',
+    },
+    priority: "Приоритет"
   },
   uk: {
     langName: 'Українська',
@@ -66,6 +80,7 @@ export const translations: Record<Languages, LanguageObject> = {
     save: "Зберегти",
     cancel: "Відмінити",
     ok: 'Oк',
+    newTaskPlaceholder: 'Введіть нову задачу...',
     weekdays: ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Нд'],
     settingsTab: {
       fontSize: 'Розмір шрифту',
@@ -84,7 +99,13 @@ export const translations: Record<Languages, LanguageObject> = {
       delete: 'Видалити',
       notification: 'Нагадування',
       deleteNotification: 'Видалити нагадування',
-    }
+      changePriority: 'Змінити пріорітет',
+    },
+    priorities: {
+      General: 'Звичайне',
+      Important: 'Важливе',
+    },
+    priority: "Пріорітет"
   },
 }
 

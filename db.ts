@@ -1,7 +1,7 @@
 import * as SQLite from 'expo-sqlite';
 import Storage from 'expo-sqlite/kv-store';
 import { Alert } from 'react-native';
-import { Languages, Task, themes } from "./types";
+import { Languages, Migration, Task, TaskPriorities, themes } from "./types";
 
 const TASKS_TABLE_NAME = "tasks";
 
@@ -32,33 +32,44 @@ export async function setLangPrefInStorage(lang: Languages) {
   }
 }
 
-export async function migrateDb(db: SQLite.SQLiteDatabase) {
-  try {
-    const DB_VERSION = 1;
-
-    const tableExists = await db.getFirstAsync<{ name: string }>(
-      `SELECT name FROM sqlite_master WHERE type='table' AND name='${TASKS_TABLE_NAME}';`
-    );
-
-    if (!tableExists) {
-      await db.execAsync(`
+const migrations: Migration[] = [
+  async (db: SQLite.SQLiteDatabase) => {
+    await db.execAsync(`
         PRAGMA journal_mode = 'wal';
         CREATE TABLE ${TASKS_TABLE_NAME} (
-          id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, 
-          text TEXT NOT NULL, 
+          id INTEGER PRIMARY KEY NOT NULL, 
+          text TEXT NOT NULL,
           created INTEGER NOT NULL,
           assignedDate INTEGER NOT NULL,
           notifDate INTEGER,
           notifId TEXT,
-          isDone BOOLEAN DEFAULT 0
+          isDone BOOLEAN DEFAULT 0,
         );
       `);
+  },
+
+  async (db: SQLite.SQLiteDatabase) => {
+    await db.execAsync(`ALTER TABLE ${TASKS_TABLE_NAME} ADD COLUMN priority TEXT DEFAULT 'General'`);
+  }
+]
+
+export async function migrateDb(db: SQLite.SQLiteDatabase) {
+  try {
+    let verRes = await db.getFirstAsync<{ user_version: number }>('PRAGMA user_version');
+    const currentVersion = verRes?.user_version ?? 0;
+
+    for (let v = currentVersion; v < migrations.length; v++) {
+      await migrations[v](db);
     }
-    await db.execAsync(`PRAGMA user_version = ${DB_VERSION}`);
+
+    await db.execAsync(`PRAGMA user_version = ${migrations.length}`);;
   } catch (error) {
     Alert.alert(String(error));
     console.error(error);
-  }
+  } 
+  // finally {
+  //   console.log('migrateDb() called');
+  // }
 }
 
 export async function fetchTodaysTasksFromDb(db: SQLite.SQLiteDatabase) {
@@ -90,9 +101,25 @@ export async function fetchTasksForDayFromDb(db: SQLite.SQLiteDatabase, targetDa
   }
 }
 
-export async function addTaskToDb(db: SQLite.SQLiteDatabase, task: Task) {
+export async function addTaskToDb(db: SQLite.SQLiteDatabase, task: Omit<Task, "id">): Promise<Task> {
   try {
-    await db.runAsync(`INSERT INTO ${TASKS_TABLE_NAME} (text, created, assignedDate) VALUES (?, ?, ?)`, task.text, task.created, task.assignedDate);
+    await db.runAsync(`INSERT INTO ${TASKS_TABLE_NAME} (text, created, assignedDate, priority) VALUES (?, ?, ?, ?)`, task.text, task.created, task.assignedDate, task.priority);
+    const rowId = await db.getFirstAsync<{ id: number }>(`SELECT last_insert_rowid() as id`);
+
+    if (!rowId || typeof(rowId.id) !== 'number') {
+      throw new Error("Failed to retrieve last_insert_rowid()");
+    }
+
+    return { ...task, id: rowId.id };
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+}
+
+export async function changePriorityInDb(db: SQLite.SQLiteDatabase, id: number, newPriority: TaskPriorities) {
+  try {
+    await db.runAsync(`UPDATE ${TASKS_TABLE_NAME} SET priority = ? WHERE id = ?`, [newPriority, id]);
   } catch (error) {
     console.error(error);
     throw error;
@@ -101,7 +128,7 @@ export async function addTaskToDb(db: SQLite.SQLiteDatabase, task: Task) {
 
 export async function deleteTaskFromDb(db: SQLite.SQLiteDatabase, id: number) {
   try {
-    await db.runAsync('DELETE FROM tasks WHERE id = $id', { $id: id });
+    await db.runAsync(`DELETE FROM ${TASKS_TABLE_NAME} WHERE id = ?`, id);
   } catch (error) {
     console.error(error);
     throw error;
@@ -110,7 +137,7 @@ export async function deleteTaskFromDb(db: SQLite.SQLiteDatabase, id: number) {
 
 export async function toggleStatusInDb(db: SQLite.SQLiteDatabase, id: number) {
   try {
-    await db.runAsync('UPDATE tasks SET isDone = NOT isDone, notifDate = ?, notifId = ? WHERE id = ?', null, null, id);
+    await db.runAsync(`UPDATE ${TASKS_TABLE_NAME} SET isDone = NOT isDone, notifDate = ?, notifId = ? WHERE id = ?`, null, null, id);
   } catch (error) {
     console.error(error);
     throw error;
@@ -119,7 +146,7 @@ export async function toggleStatusInDb(db: SQLite.SQLiteDatabase, id: number) {
 
 export async function editTextInDb(db: SQLite.SQLiteDatabase, id: number, newText: string) {
   try {
-    await db.runAsync('UPDATE tasks SET text = ? WHERE id = ?', newText, id);
+    await db.runAsync(`UPDATE ${TASKS_TABLE_NAME} SET text = ? WHERE id = ?`, newText, id);
   } catch (error) {
     console.error(error);
     throw error;
@@ -128,7 +155,7 @@ export async function editTextInDb(db: SQLite.SQLiteDatabase, id: number, newTex
 
 export async function setNotifTimeInDb(db: SQLite.SQLiteDatabase, id: number, notifDate: number, notifId: string) {
   try {
-    await db.runAsync('UPDATE tasks SET notifDate = ?, notifId = ? WHERE id = ?', notifDate, notifId, id);
+    await db.runAsync(`UPDATE ${TASKS_TABLE_NAME} SET notifDate = ?, notifId = ? WHERE id = ?`, notifDate, notifId, id);
   } catch (error) {
     console.error(error);
     throw error;
@@ -137,7 +164,7 @@ export async function setNotifTimeInDb(db: SQLite.SQLiteDatabase, id: number, no
 
 export async function cancelNotifInDb(db: SQLite.SQLiteDatabase, id: number) {
   try {
-    await db.runAsync('UPDATE tasks SET notifDate = ?, notifId = ? WHERE id = ?', null, null, id);
+    await db.runAsync(`UPDATE ${TASKS_TABLE_NAME} SET notifDate = ?, notifId = ? WHERE id = ?`, null, null, id);
   } catch (error) {
     console.error(error);
     throw error;
@@ -157,7 +184,24 @@ export async function clearPrefsInStorage() {
 
 export async function clearDB(db: SQLite.SQLiteDatabase) {
   try {
-    await db.runAsync('DROP TABLE IF EXISTS tasks;');
+    // await db.runAsync(`DROP TABLE IF EXISTS ${TASKS_TABLE_NAME};`);
+    // await migrateDb(db);
+    await db.execAsync(`
+      BEGIN TRANSACTION;
+      DROP TABLE IF EXISTS ${TASKS_TABLE_NAME};
+      CREATE TABLE ${TASKS_TABLE_NAME} (
+        id INTEGER PRIMARY KEY NOT NULL,
+        text TEXT NOT NULL,
+        created INTEGER NOT NULL,
+        assignedDate INTEGER NOT NULL,
+        notifDate INTEGER,
+        notifId TEXT,
+        isDone BOOLEAN DEFAULT 0,
+        priority TEXT DEFAULT 'General'
+      );
+      PRAGMA user_version = ${migrations.length};
+      COMMIT;
+    `);
   } catch (error) {
     console.error(error);
     throw error;
@@ -166,7 +210,7 @@ export async function clearDB(db: SQLite.SQLiteDatabase) {
 
 export async function deleteExpiredTasksFromDb(db: SQLite.SQLiteDatabase, expDate: number) {
   try {
-    await db.runAsync('DELETE FROM tasks WHERE assignedDate < ?', expDate);
+    await db.runAsync(`DELETE FROM ${TASKS_TABLE_NAME} WHERE assignedDate < ?`, expDate);
   } catch (error) {
     console.error(error);
     throw error;
@@ -175,10 +219,10 @@ export async function deleteExpiredTasksFromDb(db: SQLite.SQLiteDatabase, expDat
 
 export async function fetchAllTasksFromDb(db: SQLite.SQLiteDatabase) {
   try {
-    const result = await db.getAllAsync<Task>('SELECT * FROM tasks ORDER BY assignedDate');
+    const result = await db.getAllAsync<Task>(`SELECT * FROM ${TASKS_TABLE_NAME} ORDER BY assignedDate`);
     return result;
   } catch (error) {
-    console.error(error);
+    console.error(error + ' from fetchAllTasksFromDb()');
     throw error;
   }
 }

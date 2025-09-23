@@ -10,22 +10,29 @@ import Feather from '@expo/vector-icons/Feather';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import { useSQLiteContext } from 'expo-sqlite';
+import Octicons from '@expo/vector-icons/Octicons';
+import * as SQLite from 'expo-sqlite';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, useWindowDimensions, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, { runOnJS, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
+import TaskPriorityModal from './TaskPriorityModal';
 import TimePicker from './TimePicker';
 
 const MAX_OFFSET_BEFORE_DELETION = 0.3;
+const borderColors = {
+  General: "hsla(32, 100%, 79%, 1.00)",
+  Important: "#DC143C",
+  Complete: "#DCDCDC"
+}
 
-export default function TaskElement({ task, pos }: { task: Task, pos: number }) {
-  const db = useSQLiteContext();
+export default function TaskElement({ task, pos, db }: { task: Task, pos: number, db: SQLite.SQLiteDatabase, }) {
   const { deleteTask, toggleStatus, editText, deleteNotif } = useTasks();
   const [editTaskMode, setEditTaskMode] = useState<boolean>(false);
   const [taskValue, setTaskValue] = useState<string>(task.text);
   const [invalidInput, setInvalidInput] = useState<boolean>(false);
   const [notifModalVisible, setNotifModalVisible] = useState<boolean>(false);
+  const [showTaskPriorityModal, setShowTaskPriorityModal] = useState<boolean>(false);
   const { openDropdownId, fontSize, setOpenDropdownId } = useGeneral();
   const inputRef = useRef<TextInput>(null);
   const translateX = useSharedValue(0);
@@ -76,6 +83,11 @@ export default function TaskElement({ task, pos }: { task: Task, pos: number }) 
     }
   }
 
+  function handlePriorityModalCall() {
+    setShowTaskPriorityModal(true);
+    setOpenDropdownId(0);
+  }
+
   const animatedStyles = useAnimatedStyle(() => {
     return {
       transform: [{ translateX: translateX.value }]
@@ -101,7 +113,6 @@ export default function TaskElement({ task, pos }: { task: Task, pos: number }) 
   const tap = Gesture.Tap()
     .numberOfTaps(1)
     .onEnd(() => {
-      console.log('tap');
       runOnJS(handleStatusToggle)();
     });
 
@@ -125,7 +136,6 @@ export default function TaskElement({ task, pos }: { task: Task, pos: number }) 
     })
     .onEnd(() => {
       if (translateX.value <= (-width * MAX_OFFSET_BEFORE_DELETION)) {
-        console.log("Deleting...");
         runOnJS(handleDeleteFromGesture)(task.id);
         translateX.value = withTiming(-width, { duration: 300 });
       } else {
@@ -144,13 +154,18 @@ export default function TaskElement({ task, pos }: { task: Task, pos: number }) 
   return (
     <GestureDetector gesture={swipe}>
       <Animated.View
-        style={[styles.taskWrapper, invalidInput && styles.errorBorder, animatedStyles, task.id === openDropdownId && { zIndex: 100 }]}
+        style={[
+          styles.taskWrapper, 
+          animatedStyles, 
+          task.id === openDropdownId && { zIndex: 100 },
+          { borderColor: task.isDone ? borderColors["Complete"] : borderColors[task.priority] }
+        ]}
       >
         {editTaskMode ? (
           <>
             <TextInput
               ref={inputRef}
-              style={[styles.taskInput, { fontSize: 20 * fontSize }]}
+              style={[styles.taskInput, { fontSize: 20 * fontSize }, invalidInput && styles.errorBorder]}
               value={taskValue}
               maxLength={MAX_TASK_LENGTH}
               onChangeText={text => handleInputChange(text)}
@@ -223,6 +238,14 @@ export default function TaskElement({ task, pos }: { task: Task, pos: number }) 
                       <AntDesign name="delete" size={26} color="black" />
                       <Text style={{ fontSize: 14 * fontSize }}>{i18n.t("task.delete")}</Text>
                     </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[styles.notifBtn, styles.dropdownOption]}
+                      onPress={handlePriorityModalCall}
+                    >
+                      <Octicons name="sort-asc" size={26} color="black" />
+                      <Text style={{ fontSize: 14 * fontSize }}>{i18n.t("task.changePriority")}</Text>
+                    </TouchableOpacity>
+
                     {!task.isDone && (typeof (task.notifDate) === 'number') && task.notifDate > Date.now() && (
                       <TouchableOpacity
                         style={styles.dropdownOption}
@@ -242,6 +265,13 @@ export default function TaskElement({ task, pos }: { task: Task, pos: number }) 
             </Animated.View>
 
             <TimePicker notifModalVisible={notifModalVisible} setNotifModalVisible={setNotifModalVisible} task={task} db={db} />
+            <TaskPriorityModal
+              taskId={task.id}
+              curPriority={task.priority}
+              showTaskPriorityModal={showTaskPriorityModal}
+              setShowTaskPriorityModal={setShowTaskPriorityModal}
+              db={db}
+            />
           </>
         )
         }
@@ -274,8 +304,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    borderColor: '#F5CBCB',
-    borderWidth: 1,
+    // borderColor: '#F5CBCB',
+    borderWidth: 2,
     padding: 5,
     borderRadius: 5,
     backgroundColor: 'white',
