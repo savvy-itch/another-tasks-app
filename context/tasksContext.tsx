@@ -1,4 +1,4 @@
-import { addTaskToDb, cancelNotifInDb, changePriorityInDb, clearDB, deleteExpiredTasksFromDb, deleteTaskFromDb, editTextInDb, fetchAllTasksFromDb, fetchTasksForDayFromDb, fetchTodaysTasksFromDb, setNotifTimeInDb, toggleStatusInDb } from "@/db";
+import { addTaskToDb, cancelNotifInDb, changePriorityInDb, clearDB, deleteExpiredTasksFromDb, deleteTaskFromDb, editTextInDb, fetchAllTasksFromDb, setNotifTimeInDb, toggleStatusInDb } from "@/db";
 import { DAYS_TO_TASK_EXPIRATION } from '@/globals';
 import { Bool, Task, TaskPriorities, TasksContextType } from "@/types";
 import * as Notifications from 'expo-notifications';
@@ -14,17 +14,14 @@ interface TasksProviderProps {
 
 export default function TasksProvider({ children }: TasksProviderProps) {
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   async function fetchAllTasks(db: SQLite.SQLiteDatabase) {
     try {
-      setIsLoading(true);
       const res = await fetchAllTasksFromDb(db);
       setTasks(res);
     } catch (error) {
       Alert.alert(String(error) + 'from fetchAllTasks()');
     } finally {
-      setIsLoading(false);
       // console.log('fetchAllTask()');
     }
   }
@@ -55,7 +52,6 @@ export default function TasksProvider({ children }: TasksProviderProps) {
       await deleteTaskFromDb(db, id);
       const updatedTasks = tasks.filter(t => t.id !== id);
       setTasks(updatedTasks);
-      // Alert.alert("Task has been deleted");
     } catch (error) {
       Alert.alert(String(error));
     }
@@ -73,28 +69,6 @@ export default function TasksProvider({ children }: TasksProviderProps) {
             notifId: null,
           } : t
         ));
-    } catch (error) {
-      Alert.alert(String(error));
-    }
-  }
-
-  async function fetchTodaysTasks(db: SQLite.SQLiteDatabase) {
-    try {
-      const result = await fetchTodaysTasksFromDb(db);
-      if (result) {
-        setTasks(result);
-      }
-    } catch (error) {
-      Alert.alert(String(error));
-    }
-  }
-
-  async function fetchTasksForDay(db: SQLite.SQLiteDatabase, targetDate: Date) {
-    try {
-      const result = await fetchTasksForDayFromDb(db, targetDate);
-      if (result) {
-        setTasks(result);
-      }
     } catch (error) {
       Alert.alert(String(error));
     }
@@ -162,15 +136,11 @@ export default function TasksProvider({ children }: TasksProviderProps) {
   return (
     <TasksContext.Provider value={{
       tasks,
-      isLoading,
-      setIsLoading,
       addTask,
       setTasks,
       fetchAllTasks,
       deleteTask,
       toggleStatus,
-      fetchTodaysTasks,
-      fetchTasksForDay,
       editText,
       setNotifTime,
       deleteNotif,

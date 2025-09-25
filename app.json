@@ -32,7 +32,7 @@
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#ffffff"
+          "backgroundColor": "#222831"
         }
       ],
       "expo-sqlite",
@@ -52,6 +52,12 @@
             ]
           }
         }
+      ],
+      [
+        "expo-notifications",
+          {
+            "icon": "./assets/notification-icon.png"
+          }
       ]
     ],
     "experiments": {

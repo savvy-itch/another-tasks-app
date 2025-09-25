@@ -48,11 +48,12 @@ function getRank(t: Task): number {
 
 export default function TaskList({ targetDate }: { targetDate: Date }) {
   const [addTaskMode, setAddTaskMode] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const db = SQLite.useSQLiteContext();
-  const { tasks, isLoading, fetchAllTasks, deleteExpiredTasks } = useTasks();
+  const { tasks, fetchAllTasks, deleteExpiredTasks } = useTasks();
   const { fontSize, curTheme, language, fetchAppPrefs, setOpenDropdownId } = useGeneral();
   const [allNotifs, setAllNotifs] = useState<Notifications.NotificationRequest[]>([]);
-  const [targetDateTasks, setTargetDateTasks] = useState<Task[]>([]);
+  const [targetDateTasks, setTargetDateTasks] = useState<Task[] | null>(null);
   const [refreshing, setRefreshing] = useState<boolean>(false);
 
   const fetchTasksForDay = useCallback((targetDate: Date) => {
@@ -73,7 +74,6 @@ export default function TaskList({ targetDate }: { targetDate: Date }) {
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     await fetchAllTasks(db);
-    // fetchTasksForDay(targetDate);
     setOpenDropdownId(0)
     setRefreshing(false);
   }, [db, fetchAllTasks, setOpenDropdownId]);
@@ -92,25 +92,31 @@ export default function TaskList({ targetDate }: { targetDate: Date }) {
   }
 
   useEffect(() => {
-    async function updateData() {
-      await migrateDb(db);
-      await deleteExpiredTasks(db);
-      await fetchAllTasks(db);
-    }
-    updateData();
-  }, [db]);
+    fetchAppPrefs();
+  }, [fetchAppPrefs]);
 
   useEffect(() => {
     fetchTasksForDay(targetDate);
   }, [targetDate, tasks, fetchTasksForDay]);
 
   useEffect(() => {
+    async function updateData() {
+      setIsLoading(true);
+      await migrateDb(db);
+      await deleteExpiredTasks(db);
+      await fetchAllTasks(db);
+      setIsLoading(false);
+    }
+    updateData();
+  }, [db]);
+
+  useEffect(() => {
     getAllNotifs();
   }, [tasks]);
 
-  useEffect(() => {
-    fetchAppPrefs();
-  }, [fetchAppPrefs]);
+  // useEffect(() => {
+  //   console.log(isLoading);
+  // }, [isLoading]);
 
   return (
     <GestureHandlerRootView>
@@ -130,7 +136,7 @@ export default function TaskList({ targetDate }: { targetDate: Date }) {
             {capitalizeDateStr(targetDate.toLocaleDateString(language, dateOptions), language)}
           </Text>
           <View style={styles.tasksContainer}>
-            {isLoading
+            {!targetDateTasks
               ? Array.from({ length: taskSkeletonsAmount }).map((_, i) => <TaskSkeleton key={i} />)
               : targetDateTasks.length > 0
                 ? targetDateTasks.map((t, i) => (

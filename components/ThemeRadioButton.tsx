@@ -46,6 +46,7 @@ const styles = StyleSheet.create({
     position: 'relative',
     borderRadius: 13,
     boxSizing: 'border-box',
+    overflow: 'hidden',
   },
   radioIndicator: {
     width: INDICATOR_SIZE,

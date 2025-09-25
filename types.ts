@@ -20,15 +20,14 @@ export type TaskPriorities = "General" | "Important";
 
 interface TasksContextType {
   tasks: Task[],
-  isLoading: boolean,
-  setIsLoading: (isLoading: boolean) => void,
+  // isLoading: boolean,
+  // setIsLoading: (isLoading: boolean) => void,
   setTasks: (tasks: Task[]) => void,
   fetchAllTasks: (db: SQLite.SQLiteDatabase) => void,
   addTask: (db: SQLite.SQLiteDatabase, task: Omit<Task, "id">) => void,
   deleteTask: (db: SQLite.SQLiteDatabase, taskId: number) => void,
   toggleStatus: (db: SQLite.SQLiteDatabase, taskId: number) => void,
-  fetchTodaysTasks: (db: SQLite.SQLiteDatabase) => void,
-  fetchTasksForDay: (db: SQLite.SQLiteDatabase, targetDate: Date) => void,
+  // fetchTodaysTasks: (db: SQLite.SQLiteDatabase) => void,
   editText: (db: SQLite.SQLiteDatabase, taskId: number, newText: string) => void,
   setNotifTime: (db: SQLite.SQLiteDatabase, taskId: number, notifDate: number, notifId: string) => void,
   deleteNotif: (db: SQLite.SQLiteDatabase, taskId: number, notifId: string) => void,
@@ -63,6 +62,8 @@ export interface ColorTheme {
   textColor: string,
   dayBg: string,
   dayHighlightBg: string,
+  tabsBg: string,
+  highlight: string,
 }
 
 export interface LanguageObject {
@@ -90,8 +91,8 @@ export interface LanguageObject {
   task: {
     edit: string,
     delete: string,
-    notification: string,
-    deleteNotification: string,
+    reminder: string,
+    deleteReminder: string,
     changePriority: string,
   },
   priorities: {

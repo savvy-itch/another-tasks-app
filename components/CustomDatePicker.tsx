@@ -1,4 +1,4 @@
-import { allThemes } from '@/globals';
+import { allThemes, DAY_BTN_SIZE } from '@/globals';
 import { useGeneral } from '@/hooks/useGeneral';
 import { useTasks } from '@/hooks/useTasks';
 import Entypo from '@expo/vector-icons/Entypo';
@@ -6,25 +6,26 @@ import { useFocusEffect } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import React, { useCallback, useEffect, useState } from 'react';
 import { FlatList, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import CalendarSkeleton from './CalendarSkeleton';
 import TaskList from './TaskList';
 import Weekdays from './Weekdays';
 
 const totalSlots = 35;
 const trueToday = new Date();
-const dayBtnSize = 36;
 
 function capitalize(s: string) {
   return s.charAt(0).toUpperCase() + s.substring(1);
 }
 
 export default function CustomDatePicker() {
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [curDate, setCurDate] = useState<Date>(new Date());
   const [monthSlots, setMonthSlots] = useState<number[]>([]);
   const [daysWithTasks, setDaysWithTasks] = useState<Set<string>>();
   const [showModal, setShowModal] = useState<boolean>(false);
   const [targetDate, setTargetDate] = useState<Date>(trueToday);
   const [isPopulating, setIsPopulating] = useState<boolean>(false);
-  const { tasks, isLoading } = useTasks();
+  const { tasks } = useTasks();
   const { fontSize, curTheme, language, fetchAppPrefs } = useGeneral();
   const db = useSQLiteContext();
 
@@ -48,6 +49,7 @@ export default function CustomDatePicker() {
 
   useEffect(() => {
     function updateDaysWithTasks() {
+      setIsLoading(true);
       const filteredTasks: Set<string> = new Set();
       tasks.forEach(t => {
         const d = new Date(t.assignedDate);
@@ -56,15 +58,16 @@ export default function CustomDatePicker() {
         }
       });
       setDaysWithTasks(filteredTasks);
+      setIsLoading(false);
     }
 
     updateDaysWithTasks();
   }, [db, tasks, curDate]);
 
   useEffect(() => {
-    setIsPopulating(true);
 
     function populateMonthSlots() {
+      setIsPopulating(true);
       const arr: number[] = [];
       const dayOffset = new Date(curDate.getFullYear(), curDate.getMonth(), 1).getDay();
       let amountOfDaysInMonth = new Date(curDate.getFullYear(), curDate.getMonth() + 1, 0).getDate();
@@ -78,10 +81,10 @@ export default function CustomDatePicker() {
         }
       }
       setMonthSlots(arr);
+      setIsPopulating(false);
     }
 
     populateMonthSlots();
-    setIsPopulating(false);
   }, [curDate]);
 
   useFocusEffect(
@@ -123,16 +126,8 @@ export default function CustomDatePicker() {
 
       {/* days */}
       {(isLoading || isPopulating)
-        ? (
-          <FlatList
-            data={monthSlots}
-            renderItem={() => <View style={styles.daySlot}><View style={styles.skeletonSlot}></View></View>}
-            keyExtractor={index => `empty-${index}`}
-            numColumns={7}
-            columnWrapperStyle={{ justifyContent: 'space-between' }}
-            contentContainerStyle={styles.slotsWrapper}
-          />
-        ) : (
+        ? <CalendarSkeleton totalSlots={totalSlots} />
+        : (
           <FlatList
             data={monthSlots}
             renderItem={({ item, index }) => {
@@ -166,6 +161,10 @@ export default function CustomDatePicker() {
             numColumns={7}
             columnWrapperStyle={{ justifyContent: 'space-between', gap: 5 }}
             contentContainerStyle={styles.slotsWrapper}
+            getItemLayout={(_, index) => {
+              const row = Math.floor(index / 7);
+              return { length: DAY_BTN_SIZE, offset: row * index, index }
+            }}
           />
         )}
 
@@ -207,16 +206,8 @@ const styles = StyleSheet.create({
   },
   emptySlot: {
     backgroundColor: '#DCDCDC',
-    width: dayBtnSize,
-    height: dayBtnSize,
-    borderRadius: '50%',
-    borderColor: 'gray',
-    borderWidth: 1,
-  },
-  skeletonSlot: {
-    backgroundColor: 'gray',
-    width: dayBtnSize,
-    height: dayBtnSize,
+    width: DAY_BTN_SIZE,
+    height: DAY_BTN_SIZE,
     borderRadius: '50%',
     borderColor: 'gray',
     borderWidth: 1,
@@ -225,8 +216,8 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   slotBtn: {
-    width: dayBtnSize,
-    height: dayBtnSize,
+    width: DAY_BTN_SIZE,
+    height: DAY_BTN_SIZE,
     borderRadius: '50%',
     borderColor: 'gray',
     borderWidth: 1,
@@ -240,16 +231,11 @@ const styles = StyleSheet.create({
   today: {
     fontWeight: 'bold',
   },
-  // hasTasks: {
-  //   backgroundColor: 'hsla(137, 78%, 81%, 1.00)',
-  // },
   disabledArrow: {
     color: 'hsla(0, 0%, 63%, 1.00)'
   },
   navBtn: {
     paddingVertical: 5,
     paddingHorizontal: 10,
-    // borderWidth: 1,
-    // borderColor: 'black'
   }
 });

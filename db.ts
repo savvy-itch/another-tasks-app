@@ -72,34 +72,34 @@ export async function migrateDb(db: SQLite.SQLiteDatabase) {
   // }
 }
 
-export async function fetchTodaysTasksFromDb(db: SQLite.SQLiteDatabase) {
-  try {
-    const curDate = new Date(Date.now());
-    let startMidnight = new Date(curDate);
-    startMidnight.setHours(0, 0, 0, 0);
-    let endMidnight = new Date(curDate);
-    endMidnight.setHours(24, 0, 0, 0);
-    const result = await db.getAllAsync<Task>(`SELECT * FROM ${TASKS_TABLE_NAME} WHERE assignedDate >= ? AND assignedDate < ? ORDER BY assignedDate`, startMidnight.getTime(), endMidnight.getTime());
-    return result;
-  } catch (error) {
-    console.error(error);
-    throw error;
-  }
-}
+// export async function fetchTodaysTasksFromDb(db: SQLite.SQLiteDatabase) {
+//   try {
+//     const curDate = new Date(Date.now());
+//     let startMidnight = new Date(curDate);
+//     startMidnight.setHours(0, 0, 0, 0);
+//     let endMidnight = new Date(curDate);
+//     endMidnight.setHours(24, 0, 0, 0);
+//     const result = await db.getAllAsync<Task>(`SELECT * FROM ${TASKS_TABLE_NAME} WHERE assignedDate >= ? AND assignedDate < ? ORDER BY assignedDate`, startMidnight.getTime(), endMidnight.getTime());
+//     return result;
+//   } catch (error) {
+//     console.error(error);
+//     throw error;
+//   }
+// }
 
-export async function fetchTasksForDayFromDb(db: SQLite.SQLiteDatabase, targetDate: Date) {
-  try {
-    let startMidnight = new Date(targetDate);
-    startMidnight.setHours(0, 0, 0, 0);
-    let endMidnight = new Date(targetDate);
-    endMidnight.setHours(24, 0, 0, 0);
-    const result = await db.getAllAsync<Task>(`SELECT * FROM ${TASKS_TABLE_NAME} WHERE assignedDate >= ? AND assignedDate < ? ORDER BY assignedDate`, startMidnight.getTime(), endMidnight.getTime());
-    return result;
-  } catch (error) {
-    console.error(error);
-    throw error;
-  }
-}
+// export async function fetchTasksForDayFromDb(db: SQLite.SQLiteDatabase, targetDate: Date) {
+//   try {
+//     let startMidnight = new Date(targetDate);
+//     startMidnight.setHours(0, 0, 0, 0);
+//     let endMidnight = new Date(targetDate);
+//     endMidnight.setHours(24, 0, 0, 0);
+//     const result = await db.getAllAsync<Task>(`SELECT * FROM ${TASKS_TABLE_NAME} WHERE assignedDate >= ? AND assignedDate < ? ORDER BY assignedDate`, startMidnight.getTime(), endMidnight.getTime());
+//     return result;
+//   } catch (error) {
+//     console.error(error);
+//     throw error;
+//   }
+// }
 
 export async function addTaskToDb(db: SQLite.SQLiteDatabase, task: Omit<Task, "id">): Promise<Task> {
   try {

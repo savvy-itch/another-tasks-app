@@ -1,5 +1,6 @@
 import { useGeneral } from '@/hooks/useGeneral';
 import { useTasks } from '@/hooks/useTasks';
+import { useTranslation } from '@/hooks/useTranslation';
 import { ensureNotificationPermissions } from '@/notifications';
 import { Task } from '@/types';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
@@ -19,6 +20,7 @@ export default function TimePicker({ notifModalVisible, setNotifModalVisible, ta
   const [date, setDate] = useState<Date>(new Date(Date.now()));
   const { setNotifTime } = useTasks();
   const { setOpenDropdownId } = useGeneral();
+  const i18n = useTranslation();
 
   async function onChange(e: DateTimePickerEvent, selectedDate?: Date) {
     try {
@@ -42,7 +44,6 @@ export default function TimePicker({ notifModalVisible, setNotifModalVisible, ta
         }
       }
       setNotifModalVisible(false);
-      // setShowDropdown(false);
       setOpenDropdownId(0);
     } catch (error) {
       Alert.alert(String(error));
@@ -52,7 +53,7 @@ export default function TimePicker({ notifModalVisible, setNotifModalVisible, ta
   async function setNotification(body: string, notifDate: Date): Promise<string> {
     return Notifications.scheduleNotificationAsync({
       content: {
-        title: `Task reminder!`,
+        title: `${notifDate.getHours()}:${notifDate.getMinutes()} ${i18n.t("task.reminder")}!`,
         body,
       },
       trigger: {

@@ -229,7 +229,7 @@ export default function TaskElement({ task, pos, db }: { task: Task, pos: number
                       disabled={task.isDone ? true : false}
                     >
                       <AntDesign name="bells" size={26} color="black" />
-                      <Text style={{ fontSize: 14 * fontSize }}>{i18n.t("task.notification")}</Text>
+                      <Text style={{ fontSize: 14 * fontSize }}>{i18n.t("task.reminder")}</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                       style={[styles.notifBtn, styles.dropdownOption]}
@@ -252,7 +252,7 @@ export default function TaskElement({ task, pos, db }: { task: Task, pos: number
                         onPress={cancelNotif}
                       >
                         <Feather name="bell-off" size={26} color="black" />
-                        <Text style={{ fontSize: 14 * fontSize }}>{i18n.t("task.deleteNotification")}</Text>
+                        <Text style={{ fontSize: 14 * fontSize }}>{i18n.t("task.deleteReminder")}</Text>
                       </TouchableOpacity>
                     )}
                   </View>

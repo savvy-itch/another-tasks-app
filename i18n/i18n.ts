@@ -27,8 +27,8 @@ export const translations: Record<Languages, LanguageObject> = {
     task: {
       edit: 'Edit',
       delete: 'Delete',
-      notification: 'Notification',
-      deleteNotification: 'Delete notification',
+      reminder: 'Reminder',
+      deleteReminder: 'Delete reminder',
       changePriority: 'Change priority'
     },
     priorities: {
@@ -62,8 +62,8 @@ export const translations: Record<Languages, LanguageObject> = {
     task: {
       edit: 'Редактировать',
       delete: 'Удалить',
-      notification: 'Уведомление',
-      deleteNotification: 'Удалить уведомление',
+      reminder: 'Напоминание',
+      deleteReminder: 'Удалить напоминание',
       changePriority: 'Изменить приоритет',
     },
     priorities: {
@@ -97,8 +97,8 @@ export const translations: Record<Languages, LanguageObject> = {
     task: {
       edit: 'Редагувати',
       delete: 'Видалити',
-      notification: 'Нагадування',
-      deleteNotification: 'Видалити нагадування',
+      reminder: 'Нагадування',
+      deleteReminder: 'Видалити нагадування',
       changePriority: 'Змінити пріорітет',
     },
     priorities: {
