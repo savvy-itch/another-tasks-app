@@ -10,6 +10,7 @@ import * as SQLite from 'expo-sqlite'
 import React, { useCallback, useEffect, useState } from 'react'
 import { Alert, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
+import DeleteAllTasksModal from './DeleteAllTasksModal'
 import NewTaskModalContent from './NewTaskModalContent'
 import TaskElement from './TaskElement'
 import TaskSkeleton from './TaskSkeleton'
@@ -49,6 +50,7 @@ function getRank(t: Task): number {
 export default function TaskList({ targetDate }: { targetDate: Date }) {
   const [addTaskMode, setAddTaskMode] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [showDeleteAllTasksModal, setShowDeleteAllTasksModal] = useState<boolean>(false);
   const db = SQLite.useSQLiteContext();
   const { tasks, fetchAllTasks, deleteExpiredTasks } = useTasks();
   const { fontSize, curTheme, language, fetchAppPrefs, setOpenDropdownId } = useGeneral();
@@ -114,10 +116,6 @@ export default function TaskList({ targetDate }: { targetDate: Date }) {
     getAllNotifs();
   }, [tasks]);
 
-  // useEffect(() => {
-  //   console.log(isLoading);
-  // }, [isLoading]);
-
   return (
     <GestureHandlerRootView>
       <ScrollView
@@ -132,9 +130,19 @@ export default function TaskList({ targetDate }: { targetDate: Date }) {
       >
         <Pressable style={[StyleSheet.absoluteFillObject, styles.overlay]} onPress={() => setOpenDropdownId(0)} />
         <View>
-          <Text style={[styles.todayText, { fontSize: 20 * fontSize, color: allThemes[curTheme].textColor }]}>
-            {capitalizeDateStr(targetDate.toLocaleDateString(language, dateOptions), language)}
-          </Text>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 15 }}>
+            <Text style={[styles.todayText, { fontSize: 20 * fontSize, color: allThemes[curTheme].textColor }]}>
+              {capitalizeDateStr(targetDate.toLocaleDateString(language, dateOptions), language)}
+            </Text>
+            <Pressable
+              style={{ padding: 5, justifyContent: 'center', alignItems: 'center' }}
+              onPress={() => setShowDeleteAllTasksModal(true)}
+            >
+              <AntDesign name="delete" size={26} color={allThemes[curTheme].textColor} />
+            </Pressable>
+            <DeleteAllTasksModal db={db} showDeleteAllTasksModal={showDeleteAllTasksModal} setShowDeleteAllTasksModal={setShowDeleteAllTasksModal} targetDate={targetDate} />
+          </View>
+
           <View style={styles.tasksContainer}>
             {!targetDateTasks
               ? Array.from({ length: taskSkeletonsAmount }).map((_, i) => <TaskSkeleton key={i} />)

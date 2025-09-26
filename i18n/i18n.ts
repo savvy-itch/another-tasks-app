@@ -36,6 +36,8 @@ export const translations: Record<Languages, LanguageObject> = {
       Important: 'Important',
     },
     priority: "Priority",
+    deleteTasksForDayDialog: "Are you sure you want to delete all tasks for this day?",
+    deleteTasksSuccessMsg: "The tasks for this day have been successfully deleted"
   },
   ru: {
     langName: 'Русский',
@@ -70,7 +72,9 @@ export const translations: Record<Languages, LanguageObject> = {
       General: 'Обычное',
       Important: 'Важное',
     },
-    priority: "Приоритет"
+    priority: "Приоритет",
+    deleteTasksForDayDialog: "Вы уверены, что хотите удалить все задачи для этого дня?",
+    deleteTasksSuccessMsg: "Задачи для этого дня были успешно удалены"
   },
   uk: {
     langName: 'Українська',
@@ -105,7 +109,9 @@ export const translations: Record<Languages, LanguageObject> = {
       General: 'Звичайне',
       Important: 'Важливе',
     },
-    priority: "Пріорітет"
+    priority: "Пріорітет",
+    deleteTasksForDayDialog: "Ви впевнені, що хочете видалити всі задачі для цього дня?",
+    deleteTasksSuccessMsg: "Задачі для цього дня були успішно видалені"
   },
 }
 

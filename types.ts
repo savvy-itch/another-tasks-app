@@ -20,14 +20,12 @@ export type TaskPriorities = "General" | "Important";
 
 interface TasksContextType {
   tasks: Task[],
-  // isLoading: boolean,
-  // setIsLoading: (isLoading: boolean) => void,
   setTasks: (tasks: Task[]) => void,
   fetchAllTasks: (db: SQLite.SQLiteDatabase) => void,
   addTask: (db: SQLite.SQLiteDatabase, task: Omit<Task, "id">) => void,
   deleteTask: (db: SQLite.SQLiteDatabase, taskId: number) => void,
+  deleteAllTasksForDay: (db: SQLite.SQLiteDatabase, targetDate: Date) => void,
   toggleStatus: (db: SQLite.SQLiteDatabase, taskId: number) => void,
-  // fetchTodaysTasks: (db: SQLite.SQLiteDatabase) => void,
   editText: (db: SQLite.SQLiteDatabase, taskId: number, newText: string) => void,
   setNotifTime: (db: SQLite.SQLiteDatabase, taskId: number, notifDate: number, notifId: string) => void,
   deleteNotif: (db: SQLite.SQLiteDatabase, taskId: number, notifId: string) => void,
@@ -100,6 +98,8 @@ export interface LanguageObject {
     Important: string,
   },
   priority: string,
+  deleteTasksForDayDialog: string,
+  deleteTasksSuccessMsg: string,
 }
 
 export type Migration = (db: SQLite.SQLiteDatabase) => Promise<void>;

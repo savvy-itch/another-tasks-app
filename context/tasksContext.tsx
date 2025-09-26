@@ -1,4 +1,4 @@
-import { addTaskToDb, cancelNotifInDb, changePriorityInDb, clearDB, deleteExpiredTasksFromDb, deleteTaskFromDb, editTextInDb, fetchAllTasksFromDb, setNotifTimeInDb, toggleStatusInDb } from "@/db";
+import { addTaskToDb, cancelNotifInDb, changePriorityInDb, clearDB, deleteExpiredTasksFromDb, deleteTaskFromDb, deleteTasksForDayFromDb, editTextInDb, fetchAllTasksFromDb, setNotifTimeInDb, toggleStatusInDb } from "@/db";
 import { DAYS_TO_TASK_EXPIRATION } from '@/globals';
 import { Bool, Task, TaskPriorities, TasksContextType } from "@/types";
 import * as Notifications from 'expo-notifications';
@@ -51,6 +51,20 @@ export default function TasksProvider({ children }: TasksProviderProps) {
     try {
       await deleteTaskFromDb(db, id);
       const updatedTasks = tasks.filter(t => t.id !== id);
+      setTasks(updatedTasks);
+    } catch (error) {
+      Alert.alert(String(error));
+    }
+  }
+
+  async function deleteAllTasksForDay(db: SQLite.SQLiteDatabase, targetDate: Date) {
+    try {
+      await deleteTasksForDayFromDb(db, targetDate);
+      let startMidnight = new Date(targetDate);
+      startMidnight.setHours(0, 0, 0, 0);
+      let endMidnight = new Date(targetDate);
+      endMidnight.setHours(24, 0, 0, 0);
+      const updatedTasks = tasks.filter(t => t.assignedDate < startMidnight.getTime() || t.assignedDate >= endMidnight.getTime());
       setTasks(updatedTasks);
     } catch (error) {
       Alert.alert(String(error));
@@ -140,6 +154,7 @@ export default function TasksProvider({ children }: TasksProviderProps) {
       setTasks,
       fetchAllTasks,
       deleteTask,
+      deleteAllTasksForDay,
       toggleStatus,
       editText,
       setNotifTime,
