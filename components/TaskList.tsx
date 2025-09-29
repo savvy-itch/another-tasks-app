@@ -53,7 +53,7 @@ export default function TaskList({ targetDate }: { targetDate: Date }) {
   const [showDeleteAllTasksModal, setShowDeleteAllTasksModal] = useState<boolean>(false);
   const db = SQLite.useSQLiteContext();
   const { tasks, fetchAllTasks, deleteExpiredTasks } = useTasks();
-  const { fontSize, curTheme, language, fetchAppPrefs, setOpenDropdownId } = useGeneral();
+  const { fontSize, curTheme, language, setOpenDropdownId } = useGeneral();
   const [allNotifs, setAllNotifs] = useState<Notifications.NotificationRequest[]>([]);
   const [targetDateTasks, setTargetDateTasks] = useState<Task[] | null>(null);
   const [refreshing, setRefreshing] = useState<boolean>(false);
@@ -94,10 +94,6 @@ export default function TaskList({ targetDate }: { targetDate: Date }) {
   }
 
   useEffect(() => {
-    fetchAppPrefs();
-  }, [fetchAppPrefs]);
-
-  useEffect(() => {
     fetchTasksForDay(targetDate);
   }, [targetDate, tasks, fetchTasksForDay]);
 
@@ -131,7 +127,7 @@ export default function TaskList({ targetDate }: { targetDate: Date }) {
         <Pressable style={[StyleSheet.absoluteFillObject, styles.overlay]} onPress={() => setOpenDropdownId(0)} />
         <View>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 15 }}>
-            <Text style={[styles.todayText, { fontSize: 20 * fontSize, color: allThemes[curTheme].textColor }]}>
+            <Text style={[styles.todayText, { fontSize: 20 * fontSize, color: allThemes[curTheme].textColor, fontFamily: 'Verdana' }]}>
               {capitalizeDateStr(targetDate.toLocaleDateString(language, dateOptions), language)}
             </Text>
             <Pressable
@@ -158,23 +154,6 @@ export default function TaskList({ targetDate }: { targetDate: Date }) {
 
         </View>
         <NewTaskModalContent db={db} addTaskMode={addTaskMode} setAddTaskMode={setAddTaskMode} assignedDate={targetDate.getTime()} />
-
-        {/* {allNotifs.length > 0 ? (
-          <View>
-            {allNotifs.map(n => (
-              <Text key={n.identifier}>{n.identifier}</Text>
-            ))}
-          </View>
-        ) : (
-          <Text>No scheduled notifications</Text>
-        )} */}
-
-        {/* <View>
-          <Text>All Tasks:</Text>
-          {tasks.map(item => (
-            <Text key={item.id}>{new Date(item.assignedDate).toLocaleDateString('en-US', dateOptions)} - {item.text}</Text>
-          ))}
-        </View> */}
       </ScrollView>
       <TouchableOpacity
         style={styles.createBtn}

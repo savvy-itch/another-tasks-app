@@ -4,8 +4,9 @@ import { useTasks } from '@/hooks/useTasks';
 import { useTranslation } from '@/hooks/useTranslation';
 import { Bool, Task, TaskPriorities } from '@/types';
 import * as SQLite from 'expo-sqlite';
-import React, { useRef, useState } from 'react';
-import { Modal, Pressable, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import React, { useCallback, useRef, useState } from 'react';
+import { Modal, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import DialogBtn from './DialogBtn';
 
 interface TaskModalProps {
   db: SQLite.SQLiteDatabase,
@@ -22,7 +23,7 @@ export default function NewTaskModalContent({ db, addTaskMode, assignedDate, set
   const newTaskRef = useRef(null);
   const i18n = useTranslation();
 
-  async function onSubmit() {
+  const onSubmit = useCallback(async () => {
     if (taskValue) {
       const date = Date.now();
       const newTask: Omit<Task, "id"> = { text: taskValue, created: date, assignedDate, isDone: Bool.FALSE, priority: selectedPriority };
@@ -30,7 +31,7 @@ export default function NewTaskModalContent({ db, addTaskMode, assignedDate, set
       setAddTaskMode(false);
       setTaskValue('');
     }
-  }
+  }, [db, addTask, taskValue, assignedDate, selectedPriority]);
 
   function onCancel() {
     setAddTaskMode(false);
@@ -53,7 +54,6 @@ export default function NewTaskModalContent({ db, addTaskMode, assignedDate, set
             value={taskValue}
             maxLength={MAX_TASK_LENGTH}
             placeholder={i18n.t("newTaskPlaceholder")}
-            autoFocus
           />
 
           <Text style={{ fontSize: BASE_FONT_SIZE * fontSize, color: allThemes[curTheme].textColor, textAlign: 'left', width: '100%', marginTop: 10 }}>{i18n.t("priority")}:</Text>
@@ -77,18 +77,8 @@ export default function NewTaskModalContent({ db, addTaskMode, assignedDate, set
           </View>
 
           <View style={styles.btnWrapper}>
-            <TouchableOpacity
-              style={[styles.saveTaskBtn, styles.btn]}
-              onPress={onSubmit}
-            >
-              <Text style={[styles.btnText, { fontSize: 20 * fontSize }]}>{i18n.t("save")}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.cancelTaskBtn, styles.btn]}
-              onPress={onCancel}
-            >
-              <Text style={[styles.btnText, { fontSize: 20 * fontSize }]}>{i18n.t("cancel")}</Text>
-            </TouchableOpacity>
+            <DialogBtn status='success' btnText={i18n.t("save")} onPressFn={onSubmit} />
+            <DialogBtn status='danger' btnText={i18n.t("cancel")} onPressFn={onCancel} />
           </View>
         </View>
       </View>
@@ -127,19 +117,6 @@ const styles = StyleSheet.create({
   btnWrapper: {
     flexDirection: 'row',
     gap: 15
-  },
-  btn: {
-    padding: 6,
-    borderRadius: 5,
-  },
-  saveTaskBtn: {
-    backgroundColor: 'green',
-  },
-  cancelTaskBtn: {
-    backgroundColor: 'red',
-  },
-  btnText: {
-    color: 'white',
   },
   radioContainer: {
     flexDirection: 'row',

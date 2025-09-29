@@ -1,4 +1,4 @@
-import { MAX_TASK_LENGTH } from '@/globals';
+import { DANGER_COLOR, MAX_TASK_LENGTH, SUCCESS_COLOR } from '@/globals';
 import { useGeneral } from '@/hooks/useGeneral';
 import { useTasks } from '@/hooks/useTasks';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -165,7 +165,7 @@ export default function TaskElement({ task, pos, db }: { task: Task, pos: number
           <>
             <TextInput
               ref={inputRef}
-              style={[styles.taskInput, { fontSize: 20 * fontSize }, invalidInput && styles.errorBorder]}
+              style={[styles.taskInput, { fontSize: 20 * fontSize, fontFamily: 'nunito' }, invalidInput && styles.errorBorder]}
               value={taskValue}
               maxLength={MAX_TASK_LENGTH}
               onChangeText={text => handleInputChange(text)}
@@ -175,12 +175,12 @@ export default function TaskElement({ task, pos, db }: { task: Task, pos: number
               <TouchableOpacity
                 onPress={submitTextEdit}
               >
-                <Ionicons name="checkmark" size={28} color="green" />
+                <Ionicons name="checkmark" size={28} color={SUCCESS_COLOR} />
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={exitEditMode}
               >
-                <Entypo name="cross" size={28} color="red" />
+                <Entypo name="cross" size={28} color={DANGER_COLOR} />
               </TouchableOpacity>
             </View>
           </>
@@ -189,7 +189,7 @@ export default function TaskElement({ task, pos, db }: { task: Task, pos: number
             <GestureDetector gesture={tap}>
               <Animated.View style={styles.pressable}>
                 <Text
-                  style={[...(task.isDone ? [styles.taskDone] : []), { fontSize: 18 * fontSize }]}
+                  style={[...(task.isDone ? [styles.taskDone] : []), { fontSize: 18 * fontSize, fontFamily: 'nunito' }]}
                   textBreakStrategy='simple'
                 >
                   {pos}. {task.text}

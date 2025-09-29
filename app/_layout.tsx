@@ -1,9 +1,13 @@
+import StartupGate from "@/components/StartupGate";
 import GeneralProvider from "@/context/generalContext";
 import TasksProvider from "@/context/tasksContext";
 import { migrateDb } from "@/db";
 import { Stack } from "expo-router";
+import * as SplashScreen from 'expo-splash-screen';
 import { SQLiteProvider } from 'expo-sqlite';
 import { StyleSheet, View } from "react-native";
+
+SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
 
@@ -12,9 +16,11 @@ export default function RootLayout() {
       <View style={styles.headerPadding} />
       <TasksProvider>
         <GeneralProvider>
-          <Stack>
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          </Stack>
+          <StartupGate>
+            <Stack>
+              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            </Stack>
+          </StartupGate>
         </GeneralProvider>
       </TasksProvider>
     </SQLiteProvider>

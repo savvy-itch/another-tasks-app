@@ -27,7 +27,7 @@ const styles = StyleSheet.create({
     gap: 5
   },
   skeletonSlot: {
-    backgroundColor: 'gray',
+    backgroundColor: '#D1D3D4',
     width: DAY_BTN_SIZE,
     height: DAY_BTN_SIZE,
     borderRadius: '50%',

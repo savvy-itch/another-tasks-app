@@ -33,3 +33,21 @@ or local version (Linux & MacOS only)
    ```bash
    eas build --platform android --profile preview --local
    ```
+
+Create production build:
+
+   ```bash
+   eas build --platform android
+   ``` 
+
+or local version (Linux & MacOS only)
+
+   ```bash
+   eas build --platform android --local
+   ```
+
+Cancel a build:
+
+   ```bash
+   eas build:cancel
+   ```

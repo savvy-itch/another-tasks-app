@@ -4,8 +4,9 @@ import { useTasks } from '@/hooks/useTasks';
 import { useTranslation } from '@/hooks/useTranslation';
 import { TaskPriorities } from '@/types';
 import * as SQLite from 'expo-sqlite';
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import DialogBtn from './DialogBtn';
 
 interface TaskPriorityProps {
   taskId: number,
@@ -23,10 +24,11 @@ export default function TaskPriorityModal({ taskId, curPriority, showTaskPriorit
   const [selectedPriority, setSelectedPriority] = useState<TaskPriorities>(curPriority);
   const i18n = useTranslation();
 
-  async function onConfirm() {
+  const onConfirm = useCallback(async () => {
     await changePriority(db, taskId, selectedPriority);
     setShowTaskPriorityModal(false);
-  }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [changePriority, db, taskId, selectedPriority]);
 
   return (
     <Modal
@@ -39,7 +41,7 @@ export default function TaskPriorityModal({ taskId, curPriority, showTaskPriorit
         <View style={[styles.dialogWrapper, { backgroundColor: allThemes[curTheme].mainBg }]}>
           <Text style={{ fontSize: BASE_FONT_SIZE * fontSize, color: allThemes[curTheme].textColor }}>Choose task priority:</Text>
 
-          {ALL_PRIORITIES.map(p => 
+          {ALL_PRIORITIES.map(p =>
             <Pressable
               key={p}
               style={[styles.radio, { borderColor: allThemes[curTheme].textColor }]}
@@ -56,18 +58,8 @@ export default function TaskPriorityModal({ taskId, curPriority, showTaskPriorit
           )}
 
           <View style={styles.btnWrapper}>
-            <Pressable
-              style={[styles.confirmBtn, styles.btn]}
-              onPress={onConfirm}
-            >
-              <Text style={[styles.btnText, { fontSize: 20 * fontSize }]}>{i18n.t("ok")}</Text>
-            </Pressable>
-            <Pressable
-              style={[styles.cancelTaskBtn, styles.btn]}
-              onPress={() => setShowTaskPriorityModal(false)}
-            >
-              <Text style={[styles.btnText, { fontSize: 20 * fontSize }]}>{i18n.t("cancel")}</Text>
-            </Pressable>
+            <DialogBtn status="success" btnText={i18n.t("ok")} onPressFn={onConfirm} />
+            <DialogBtn status="danger" btnText={i18n.t("cancel")} onPressFn={() => setShowTaskPriorityModal(false)} />
           </View>
         </View>
       </View>
@@ -108,21 +100,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 20,
     marginTop: 20,
-  },
-  btn: {
-    padding: 6,
-    borderRadius: 5,
-    minWidth: 70,
-  },
-  confirmBtn: {
-    backgroundColor: 'green',
-  },
-  cancelTaskBtn: {
-    backgroundColor: 'red',
-  },
-  btnText: {
-    color: 'white',
-    textAlign: 'center',
   },
   radio: {
     display: 'flex',

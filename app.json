@@ -1,8 +1,8 @@
 {
   "expo": {
-    "name": "tasks-app",
+    "name": "another-tasks-app",
     "slug": "tasks-app",
-    "version": "1.0.0",
+    "version": "0.1.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "tasksapp",
@@ -14,7 +14,7 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#696FC7"
       },
       "edgeToEdgeEnabled": true,
       "package": "com.savvyitch.tasksapp"
@@ -26,6 +26,46 @@
     },
     "plugins": [
       "expo-router",
+      [
+        "expo-font",
+        {
+          "fonts": [
+            "./assets/fonts/overlock_regular.ttf",
+            "./assets/fonts/SourGummy-Regular.ttf"
+          ],
+          "android": {
+            "fonts": [
+              {
+                "fontFamily": "overlock",
+                "fontDefinitions": [
+                  {
+                    "path": "./assets/fonts/overlock_regular.ttf",
+                    "weight": 600
+                  }
+                ]
+              },
+              {
+                "fontFamily": "sourgummy",
+                "fontDefinitions": [
+                  {
+                    "path": "./assets/fonts/SourGummy-Regular.ttf",
+                    "weight": 600
+                  }
+                ]
+              },
+              {
+                "fontFamily": "nunito",
+                "fontDefinitions": [
+                  {
+                    "path": "./assets/fonts/Nunito-Regular.ttf",
+                    "weight": 600
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ],
       [
         "expo-splash-screen",
         {
@@ -55,9 +95,9 @@
       ],
       [
         "expo-notifications",
-          {
-            "icon": "./assets/notification-icon.png"
-          }
+        {
+          "icon": "./assets/notification-icon.png"
+        }
       ]
     ],
     "experiments": {

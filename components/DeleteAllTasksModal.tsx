@@ -3,8 +3,9 @@ import { useGeneral } from '@/hooks/useGeneral';
 import { useTasks } from '@/hooks/useTasks';
 import { useTranslation } from '@/hooks/useTranslation';
 import * as SQLite from 'expo-sqlite';
-import React from 'react';
-import { Alert, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import React, { useCallback } from 'react';
+import { Alert, Modal, StyleSheet, Text, View } from 'react-native';
+import DialogBtn from './DialogBtn';
 
 interface DeleteAllTasksModalProps {
   db: SQLite.SQLiteDatabase,
@@ -18,7 +19,7 @@ export default function DeleteAllTasksModal({db, showDeleteAllTasksModal, setSho
   const { deleteAllTasksForDay } = useTasks();
   const i18n = useTranslation();
 
-  async function onConfirm() {
+  const onConfirm = useCallback(async () => {
     setShowDeleteAllTasksModal(false);
     try {
       await deleteAllTasksForDay(db, targetDate);
@@ -26,7 +27,7 @@ export default function DeleteAllTasksModal({db, showDeleteAllTasksModal, setSho
     } catch (error) {
       console.error(error);
     }
-  }
+  }, [db, targetDate]);
 
   return (
     <Modal
@@ -41,18 +42,8 @@ export default function DeleteAllTasksModal({db, showDeleteAllTasksModal, setSho
             {i18n.t("deleteTasksForDayDialog")}
           </Text>
           <View style={styles.btnWrapper}>
-            <Pressable
-              style={[styles.confirmBtn, styles.btn]}
-              onPress={onConfirm}
-            >
-              <Text style={[styles.btnText, { fontSize: 20 * fontSize }]}>{i18n.t("ok")}</Text>
-            </Pressable>
-            <Pressable
-              style={[styles.cancelTaskBtn, styles.btn]}
-              onPress={() => setShowDeleteAllTasksModal(false)}
-            >
-              <Text style={[styles.btnText, { fontSize: 20 * fontSize }]}>{i18n.t("cancel")}</Text>
-            </Pressable>
+            <DialogBtn status='success' btnText={i18n.t("ok")} onPressFn={onConfirm} />
+            <DialogBtn status='danger' btnText={i18n.t("cancel")} onPressFn={() => setShowDeleteAllTasksModal(false)} />
           </View>
         </View>
       </View>
@@ -94,20 +85,4 @@ const styles = StyleSheet.create({
     gap: 20,
     marginTop: 20,
   },
-  btn: {
-    padding: 6,
-    borderRadius: 5,
-    minWidth: 70,
-  },
-  confirmBtn: {
-    backgroundColor: 'green',
-  },
-  cancelTaskBtn: {
-    backgroundColor: 'red',
-  },
-  btnText: {
-    color: 'white',
-    textAlign: 'center',
-  }
-})
-
+});

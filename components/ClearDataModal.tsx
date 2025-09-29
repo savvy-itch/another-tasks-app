@@ -3,21 +3,22 @@ import { useGeneral } from '@/hooks/useGeneral';
 import { useTasks } from '@/hooks/useTasks';
 import { useTranslation } from '@/hooks/useTranslation';
 import * as SQLite from 'expo-sqlite';
-import React from 'react';
-import { Alert, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import React, { memo, useCallback } from 'react';
+import { Alert, Modal, StyleSheet, Text, View } from 'react-native';
+import DialogBtn from './DialogBtn';
 
 interface ClearDataModalProps {
   showClearDataModal: boolean,
   setShowClearDataModal: React.Dispatch<React.SetStateAction<boolean>>,
 };
 
-export default function ClearDataModal({showClearDataModal, setShowClearDataModal}: ClearDataModalProps) {
+const ClearDataModal = memo(function ClearDataModal({showClearDataModal, setShowClearDataModal}: ClearDataModalProps) {
   const { fontSize, curTheme, clearPrefs } = useGeneral();
   const { clearData } = useTasks();
   const db = SQLite.useSQLiteContext();
   const i18n = useTranslation();
 
-  async function onConfirm() {
+  const onConfirm = useCallback(async() => {
     setShowClearDataModal(false);
     try {
       clearPrefs();
@@ -26,7 +27,7 @@ export default function ClearDataModal({showClearDataModal, setShowClearDataModa
     } catch (error) {
       console.error(error);
     }
-  }
+  }, [db, clearData, clearPrefs]);
 
   return (
     <Modal
@@ -41,24 +42,14 @@ export default function ClearDataModal({showClearDataModal, setShowClearDataModa
             {i18n.t("settingsTab.clearDataDialog")}
           </Text>
           <View style={styles.btnWrapper}>
-            <Pressable
-              style={[styles.confirmBtn, styles.btn]}
-              onPress={onConfirm}
-            >
-              <Text style={[styles.btnText, { fontSize: 20 * fontSize }]}>{i18n.t("ok")}</Text>
-            </Pressable>
-            <Pressable
-              style={[styles.cancelTaskBtn, styles.btn]}
-              onPress={() => setShowClearDataModal(false)}
-            >
-              <Text style={[styles.btnText, { fontSize: 20 * fontSize }]}>{i18n.t("cancel")}</Text>
-            </Pressable>
+            <DialogBtn status="success" btnText={i18n.t("ok")} onPressFn={onConfirm} />
+            <DialogBtn status="danger" btnText={i18n.t("cancel")} onPressFn={() => setShowClearDataModal(false)} />
           </View>
         </View>
       </View>
     </Modal>
   )
-}
+})
 
 const styles = StyleSheet.create({
   modal: {
@@ -94,20 +85,6 @@ const styles = StyleSheet.create({
     gap: 20,
     marginTop: 20,
   },
-  btn: {
-    padding: 6,
-    borderRadius: 5,
-    minWidth: 70,
-  },
-  confirmBtn: {
-    backgroundColor: 'green',
-  },
-  cancelTaskBtn: {
-    backgroundColor: 'red',
-  },
-  btnText: {
-    color: 'white',
-    textAlign: 'center',
-  }
-})
+});
 
+export default ClearDataModal;

@@ -43,7 +43,7 @@ const migrations: Migration[] = [
           assignedDate INTEGER NOT NULL,
           notifDate INTEGER,
           notifId TEXT,
-          isDone BOOLEAN DEFAULT 0,
+          isDone BOOLEAN DEFAULT 0
         );
       `);
   },
@@ -60,9 +60,9 @@ export async function migrateDb(db: SQLite.SQLiteDatabase) {
 
     for (let v = currentVersion; v < migrations.length; v++) {
       await migrations[v](db);
+      await db.execAsync(`PRAGMA user_version = ${v + 1}`);;
     }
 
-    await db.execAsync(`PRAGMA user_version = ${migrations.length}`);;
   } catch (error) {
     Alert.alert(String(error));
     console.error(error);
