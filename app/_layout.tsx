@@ -5,7 +5,7 @@ import { migrateDb } from "@/db";
 import { Stack } from "expo-router";
 import * as SplashScreen from 'expo-splash-screen';
 import { SQLiteProvider } from 'expo-sqlite';
-import { StyleSheet, View } from "react-native";
+import { StatusBar } from "react-native";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -13,7 +13,7 @@ export default function RootLayout() {
 
   return (
     <SQLiteProvider databaseName="tasks.db" onInit={migrateDb}>
-      <View style={styles.headerPadding} />
+      <StatusBar barStyle={'light-content'} backgroundColor={'hsla(0, 0%, 15%, 1.00)'} />
       <TasksProvider>
         <GeneralProvider>
           <StartupGate>
@@ -26,13 +26,3 @@ export default function RootLayout() {
     </SQLiteProvider>
   );
 }
-
-const styles = StyleSheet.create({
-  headerPadding: {
-    height: 33,
-    backgroundColor: 'hsla(0, 0%, 15%, 1.00)',
-    position: 'fixed',
-    left: 0,
-    right: 0,
-  },
-});

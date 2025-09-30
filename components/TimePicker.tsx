@@ -53,7 +53,8 @@ export default function TimePicker({ notifModalVisible, setNotifModalVisible, ta
   async function setNotification(body: string, notifDate: Date): Promise<string> {
     return Notifications.scheduleNotificationAsync({
       content: {
-        title: `${notifDate.getHours()}:${notifDate.getMinutes()} ${i18n.t("task.reminder")}!`,
+        title: `${notifDate.getHours().toLocaleString("en-US", { minimumIntegerDigits: 2})}:${notifDate.getMinutes().toLocaleString("en-US", { minimumIntegerDigits: 2})} ${i18n.t("task.reminder")}!`,
+        sound: true,
         body,
       },
       trigger: {

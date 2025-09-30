@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "another-tasks-app",
+    "name": "Tasks",
     "slug": "tasks-app",
     "version": "0.1.0",
     "orientation": "portrait",
@@ -30,29 +30,10 @@
         "expo-font",
         {
           "fonts": [
-            "./assets/fonts/overlock_regular.ttf",
-            "./assets/fonts/SourGummy-Regular.ttf"
+            "./assets/fonts/Nunito-Regular.ttf"
           ],
           "android": {
             "fonts": [
-              {
-                "fontFamily": "overlock",
-                "fontDefinitions": [
-                  {
-                    "path": "./assets/fonts/overlock_regular.ttf",
-                    "weight": 600
-                  }
-                ]
-              },
-              {
-                "fontFamily": "sourgummy",
-                "fontDefinitions": [
-                  {
-                    "path": "./assets/fonts/SourGummy-Regular.ttf",
-                    "weight": 600
-                  }
-                ]
-              },
               {
                 "fontFamily": "nunito",
                 "fontDefinitions": [
@@ -96,7 +77,7 @@
       [
         "expo-notifications",
         {
-          "icon": "./assets/notification-icon.png"
+          "icon": "./assets/images/notification-icon.png"
         }
       ]
     ],

@@ -17,7 +17,7 @@ import Animated from 'react-native-reanimated';
 
 const fontSizeCoef = {
   normal: 1,
-  big: 1.3,
+  big: 1.2,
 }
 
 export default function Settings() {
@@ -30,7 +30,7 @@ export default function Settings() {
   }, [fetchAppPrefs]);
 
   return (
-    <Animated.ScrollView contentContainerStyle={[styles.mainContainer, { backgroundColor: allThemes[curTheme].mainBg }]}>
+    <Animated.ScrollView contentContainerStyle={[styles.mainContainer, { backgroundColor: allThemes[curTheme].mainBg, paddingTop: 50 }]}>
       <View style={styles.headingWrapper}>
         <FontAwesome name="text-height" size={BASE_FONT_SIZE} color={allThemes[curTheme].textColor} />
         <Text style={{ fontSize: BASE_FONT_SIZE * fontSize, color: allThemes[curTheme].textColor }}>{i18n.t("settingsTab.fontSize")}</Text>
@@ -82,7 +82,7 @@ export default function Settings() {
 
       <View style={[styles.divider, { borderColor: allThemes[curTheme].textColor, opacity: 0.5 }]} />
 
-      <View style={[styles.headingWrapper, styles.inlineContainer, styles.inlineOption]}>
+      <View style={[styles.headingWrapper, styles.inlineContainer, styles.inlineOption, {marginBottom: 20}]}>
         <View style={styles.headingWrapper}>
           <Feather name="info" size={BASE_FONT_SIZE} color={allThemes[curTheme].textColor} />
           <Text style={{ fontSize: BASE_FONT_SIZE * fontSize, color: allThemes[curTheme].textColor }}>{i18n.t("settingsTab.appVersion")}</Text>
@@ -98,6 +98,7 @@ const styles = StyleSheet.create({
     display: 'flex',
     flex: 1,
     padding: 20,
+    paddingBottom: 50,
   },
   radioContainer: {
     flexDirection: 'row',

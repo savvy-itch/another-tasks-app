@@ -126,7 +126,7 @@ export default function TaskList({ targetDate }: { targetDate: Date }) {
       >
         <Pressable style={[StyleSheet.absoluteFillObject, styles.overlay]} onPress={() => setOpenDropdownId(0)} />
         <View>
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 15 }}>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 15, marginBottom: 10 }}>
             <Text style={[styles.todayText, { fontSize: 20 * fontSize, color: allThemes[curTheme].textColor, fontFamily: 'Verdana' }]}>
               {capitalizeDateStr(targetDate.toLocaleDateString(language, dateOptions), language)}
             </Text>
@@ -170,7 +170,7 @@ const styles = StyleSheet.create({
     gap: 6,
     padding: 5,
     minHeight: '100%',
-    paddingTop: 25,
+    paddingTop: 50,
   },
   headerPadding: {
     height: 40,

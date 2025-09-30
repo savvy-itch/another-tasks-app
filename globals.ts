@@ -2,7 +2,6 @@ import { ColorTheme, TaskPriorities, themes } from "./types";
 
 export const MAX_TASK_LENGTH = 70;
 export const DAYS_TO_TASK_EXPIRATION = 7;
-export const MAIN_BG = '#FBF3D5';
 export const SUCCESS_COLOR = "#59AC77";
 export const DANGER_COLOR = "#DC143C";
 
@@ -36,4 +35,4 @@ export const allThemes: Record<themes, ColorTheme> = {
 export const BASE_FONT_SIZE = 18;
 export const INDICATOR_SIZE = 17;
 export const ALL_PRIORITIES: TaskPriorities[] = ["General", "Important"];
-export const DAY_BTN_SIZE = 36;
+export const DAY_BTN_SIZE = 38;

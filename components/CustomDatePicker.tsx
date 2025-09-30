@@ -121,7 +121,6 @@ export default function CustomDatePicker() {
         </Pressable>
       </View>
 
-      {/* list of weekdays */}
       <Weekdays />
 
       {/* days */}
@@ -185,7 +184,7 @@ export default function CustomDatePicker() {
 
 const styles = StyleSheet.create({
   calendar: {
-    width: '85%',
+    width: '87%',
     padding: 2,
   },
   nav: {

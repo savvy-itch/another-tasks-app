@@ -194,9 +194,6 @@ export default function TaskElement({ task, pos, db }: { task: Task, pos: number
                 >
                   {pos}. {task.text}
                 </Text>
-                {/* <Text style={styles.devText}>notifId: {task.notifId}</Text>
-                <Text style={styles.devText}>notifDate: {(task.notifDate)}</Text>
-                <Text style={styles.devText}>isDone: {task.isDone ? 'done' : 'not done'}</Text> */}
 
                 {(typeof (task.notifDate) === 'number' && !task.isDone && task.notifDate > Date.now()) && (
                   <View style={styles.notifTimeWrapper}>
@@ -210,6 +207,7 @@ export default function TaskElement({ task, pos, db }: { task: Task, pos: number
             {/* the dropdown */}
             <View style={styles.taskBtnWrapper}>
               <View style={styles.dropdownContainer}>
+                {/* This button press causes the problems */}
                 <TouchableOpacity onPress={handleOptionsBtnPress}>
                   <MaterialCommunityIcons name="dots-horizontal" size={30} color="gray" />
                 </TouchableOpacity>
@@ -221,7 +219,7 @@ export default function TaskElement({ task, pos, db }: { task: Task, pos: number
                       disabled={task.isDone ? true : false}
                     >
                       <Entypo name="edit" size={26} color="black" />
-                      <Text style={{ fontSize: 14 * fontSize }}>{i18n.t("task.edit")}</Text>
+                      <Text style={[{ fontSize: 14 * fontSize }, styles.dropdownOptionText]}>{i18n.t("task.edit")}</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                       style={[styles.notifBtn, styles.dropdownOption]}
@@ -229,30 +227,34 @@ export default function TaskElement({ task, pos, db }: { task: Task, pos: number
                       disabled={task.isDone ? true : false}
                     >
                       <AntDesign name="bells" size={26} color="black" />
-                      <Text style={{ fontSize: 14 * fontSize }}>{i18n.t("task.reminder")}</Text>
+                      <Text style={[{ fontSize: 14 * fontSize }, styles.dropdownOptionText]}>{i18n.t("task.reminder")}</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                       style={[styles.notifBtn, styles.dropdownOption]}
                       onPress={() => deleteTask(db, task.id)}
                     >
                       <AntDesign name="delete" size={26} color="black" />
-                      <Text style={{ fontSize: 14 * fontSize }}>{i18n.t("task.delete")}</Text>
+                      <Text style={[{ fontSize: 14 * fontSize }, styles.dropdownOptionText]}>{i18n.t("task.delete")}</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
-                      style={[styles.notifBtn, styles.dropdownOption]}
+                      style={[
+                        styles.notifBtn, 
+                        styles.dropdownOption,
+                        (task.isDone || (typeof (task.notifDate) === 'number') && task.notifDate <= Date.now()) && styles.lastDropdownOption
+                      ]}
                       onPress={handlePriorityModalCall}
                     >
                       <Octicons name="sort-asc" size={26} color="black" />
-                      <Text style={{ fontSize: 14 * fontSize }}>{i18n.t("task.changePriority")}</Text>
+                      <Text style={[{ fontSize: 14 * fontSize }, styles.dropdownOptionText]}>{i18n.t("task.changePriority")}</Text>
                     </TouchableOpacity>
 
                     {!task.isDone && (typeof (task.notifDate) === 'number') && task.notifDate > Date.now() && (
                       <TouchableOpacity
-                        style={styles.dropdownOption}
+                        style={[styles.dropdownOption, styles.lastDropdownOption]}
                         onPress={cancelNotif}
                       >
                         <Feather name="bell-off" size={26} color="black" />
-                        <Text style={{ fontSize: 14 * fontSize }}>{i18n.t("task.deleteReminder")}</Text>
+                        <Text style={[{ fontSize: 14 * fontSize }, styles.dropdownOptionText]}>{i18n.t("task.deleteReminder")}</Text>
                       </TouchableOpacity>
                     )}
                   </View>
@@ -304,7 +306,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    // borderColor: '#F5CBCB',
     borderWidth: 2,
     padding: 5,
     borderRadius: 5,
@@ -345,6 +346,7 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   dropdown: {
+    display: 'flex',
     padding: 4,
     backgroundColor: 'hsla(0, 0%, 90%, 1.00)',
     borderRadius: 4,
@@ -365,6 +367,9 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderBottomWidth: 1,
     borderColor: 'gray',
+  },
+  dropdownOptionText: {
+    flexShrink: 1,
   },
   lastDropdownOption: {
     borderBottomWidth: 0

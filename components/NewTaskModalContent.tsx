@@ -1,4 +1,4 @@
-import { ALL_PRIORITIES, allThemes, BASE_FONT_SIZE, INDICATOR_SIZE, MAX_TASK_LENGTH } from '@/globals';
+import { ALL_PRIORITIES, BASE_FONT_SIZE, INDICATOR_SIZE, MAX_TASK_LENGTH } from '@/globals';
 import { useGeneral } from '@/hooks/useGeneral';
 import { useTasks } from '@/hooks/useTasks';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -56,7 +56,7 @@ export default function NewTaskModalContent({ db, addTaskMode, assignedDate, set
             placeholder={i18n.t("newTaskPlaceholder")}
           />
 
-          <Text style={{ fontSize: BASE_FONT_SIZE * fontSize, color: allThemes[curTheme].textColor, textAlign: 'left', width: '100%', marginTop: 10 }}>{i18n.t("priority")}:</Text>
+          <Text style={{ fontSize: BASE_FONT_SIZE * fontSize, color: 'white', textAlign: 'left', width: '100%', marginTop: 10 }}>{i18n.t("priority")}:</Text>
           <View style={styles.radioContainer}>
             {ALL_PRIORITIES.map(p => (
               <Pressable
@@ -64,13 +64,13 @@ export default function NewTaskModalContent({ db, addTaskMode, assignedDate, set
                 style={styles.radio}
                 onPress={() => setSelectedPriority(p)}
               >
-                <View style={[styles.radioIndicator, { borderColor: allThemes[curTheme].textColor }]}>
+                <View style={[styles.radioIndicator, { borderColor: 'white' }]}>
                   {/* wrapper is needed to guarantee border radius when radio is toggled */}
                   <View style={{ borderRadius: (INDICATOR_SIZE * 0.4) / 2, overflow: 'hidden' }}>
-                    <View style={[styles.indicatorCore, p === selectedPriority && { backgroundColor: allThemes[curTheme].textColor }]} />
+                    <View style={[styles.indicatorCore, p === selectedPriority && { backgroundColor: 'white' }]} />
                   </View>
                 </View>
-                <Text style={{ fontSize: BASE_FONT_SIZE * fontSize, color: allThemes[curTheme].textColor }}>{i18n.t(`priorities.${p}`)}</Text>
+                <Text style={{ fontSize: BASE_FONT_SIZE * fontSize, color: 'white' }}>{i18n.t(`priorities.${p}`)}</Text>
               </Pressable>
 
             ))}

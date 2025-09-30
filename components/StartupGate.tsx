@@ -7,8 +7,6 @@ export default function StartupGate({ children }: { children:ReactNode }) {
   const [isPrefLoading, setIsPrefLoading] = useState<boolean>(true);
   const { fetchAppPrefs } = useGeneral();
   const [fontsLoaded, error] = useFonts({
-    overlock: require("../assets/fonts/overlock_regular.ttf"),
-    sourgummy: require("../assets/fonts/SourGummy-Regular.ttf"),
     nunito: require("../assets/fonts/Nunito-Regular.ttf"),
   });
 
@@ -27,9 +25,5 @@ export default function StartupGate({ children }: { children:ReactNode }) {
     fetchPrefs();
   }, [fetchAppPrefs]);
 
-  if (!fontsLoaded || isPrefLoading) {
-    return null;
-  }
-
-  return children
+  return <>{children}</>
 }
