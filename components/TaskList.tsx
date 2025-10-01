@@ -23,16 +23,15 @@ const dateOptions: Intl.DateTimeFormatOptions = {
 
 const taskSkeletonsAmount = 5;
 
+// get date string to format: <Weekday>, <Day> <Month>
 function capitalizeDateStr(s: string, lang: Languages) {
   if (lang === 'en') return s; // English dates are capitalized by default
-  let capitalizedStr = s.charAt(0).toUpperCase();
-  for (let i = 1; i < s.length; i++) {
-    if (s[i] === ',') {
-      capitalizedStr += s.substring(i, i + 5) + s.charAt(i + 5).toUpperCase() + s.substring(i + 6);
-      break;
-    }
-    capitalizedStr += s[i];
-  }
+  const arr = s.split(' ');
+  let capitalizedStr = arr[0].charAt(0).toUpperCase() + arr[0].substring(1);
+  let month = arr[2];
+  month = month.charAt(0).toUpperCase() + month.substring(1);
+  arr[2] = month;
+  capitalizedStr += ' ' + arr[1] + ' ' + arr[2];
   return capitalizedStr;
 }
 
