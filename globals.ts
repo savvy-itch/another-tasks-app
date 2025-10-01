@@ -32,7 +32,7 @@ export const allThemes: Record<themes, ColorTheme> = {
   }
 }
 
-export const BASE_FONT_SIZE = 18;
+export const BASE_FONT_SIZE = 16;
 export const INDICATOR_SIZE = 17;
 export const ALL_PRIORITIES: TaskPriorities[] = ["General", "Important"];
 export const DAY_BTN_SIZE = 38;
