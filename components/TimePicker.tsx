@@ -17,7 +17,7 @@ interface ModalProps {
 }
 
 export default function TimePicker({ notifModalVisible, setNotifModalVisible, task, db }: ModalProps) {
-  const [date, setDate] = useState<Date>(new Date(Date.now()));
+  const [date, setDate] = useState<Date>(new Date(task.assignedDate));
   const { setNotifTime } = useTasks();
   const { setOpenDropdownId } = useGeneral();
   const i18n = useTranslation();
@@ -36,7 +36,7 @@ export default function TimePicker({ notifModalVisible, setNotifModalVisible, ta
               await Notifications.cancelScheduledNotificationAsync(task.notifId);
             }
 
-            if ((await ensureNotificationPermissions()) || !task.isDone) {
+            if ((await ensureNotificationPermissions()) && !task.isDone) {
               const notifId: string = await setNotification(task.text, selectedDate);
               setNotifTime(db, task.id, selectedDate.getTime(), notifId);
             }
@@ -66,9 +66,9 @@ export default function TimePicker({ notifModalVisible, setNotifModalVisible, ta
 
   useEffect(() => {
     if (notifModalVisible) {
-      setDate(new Date(Date.now()));
+      setDate(new Date(task.assignedDate));
     }
-  }, [notifModalVisible]);
+  }, [notifModalVisible, task.assignedDate]);
 
   return (
     <>

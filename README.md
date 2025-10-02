@@ -1,6 +1,10 @@
-# Tasks app
+# Another Tasks App
 
-An Android todo list app with notifications feature.
+An Android todo list app with notifications feature. Built using Expo/React Native. Works offline, no authentication needed. Main features include:
+- Creating/editing/deleting tasks for any days;
+- Setting reminder notifications for tasks;
+- Each task has its own editable priority that dictates its placement on the tasks list;
+- Customization: choose theme, font size and app language.
 
 ## Get started
 
